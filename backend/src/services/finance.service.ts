@@ -277,11 +277,8 @@ export const getCustomerDebt = async (customerId: number) => {
  * 获取应收账款统计
  */
 export const getReceivableStats = async () => {
-  // 只统计未结清的应收账款
-  const activeReceivables = await prisma.receivable.findMany({
-    where: {
-      status: { in: ['unpaid', 'partial'] }
-    },
+  // 获取所有应收账款（用于计算累计已收款）
+  const allReceivables = await prisma.receivable.findMany({
     select: {
       amount: true,
       paidAmount: true,
@@ -290,12 +287,20 @@ export const getReceivableStats = async () => {
     },
   })
 
+  // 获取未结清的应收账款
+  const activeReceivables = allReceivables.filter(
+    r => r.status === 'unpaid' || r.status === 'partial'
+  )
+
   // 应收总额 = 当前未结清的应收账款金额
   const totalAmount = activeReceivables.reduce((sum, r) => sum + r.amount, 0)
-  // 已收款 = 当前未结清的应收账款已收款金额
-  const totalPaid = activeReceivables.reduce((sum, r) => sum + r.paidAmount, 0)
-  // 欠款金额 = 剩余欠款
-  const totalRemaining = totalAmount - totalPaid
+  // 已收款 = 所有应收账款的已收款（累积，包括已结清的）
+  const totalPaid = allReceivables.reduce((sum, r) => sum + r.paidAmount, 0)
+  // 欠款金额 = 未结清应收账款的剩余金额
+  const totalRemaining = activeReceivables.reduce(
+    (sum, r) => sum + (r.amount - r.paidAmount),
+    0
+  )
 
   // 统计欠款客户数
   const debtCustomerIds = new Set<number>()
@@ -304,17 +309,13 @@ export const getReceivableStats = async () => {
   }
   const debtCustomerCount = debtCustomerIds.size
 
+  // 按状态统计
   const byStatus = {
     unpaid: { count: 0, amount: 0 },
     partial: { count: 0, amount: 0 },
     paid: { count: 0, amount: 0 },
   }
 
-  // 获取所有状态统计
-  const allReceivables = await prisma.receivable.findMany({
-    select: { status: true, amount: true, paidAmount: true }
-  })
-  
   for (const r of allReceivables) {
     byStatus[r.status as keyof typeof byStatus].count++
     byStatus[r.status as keyof typeof byStatus].amount += r.amount - r.paidAmount
