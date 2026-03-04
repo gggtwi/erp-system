@@ -28,6 +28,7 @@ import skuRoutes from './routes/sku'
 import inventoryRoutes from './routes/inventory'
 import customerRoutes from './routes/customer'
 import saleRoutes from './routes/sale'
+import financeRoutes from './routes/finance'
 
 app.use('/api/auth', authRoutes)
 app.use('/api/categories', categoryRoutes)
@@ -36,6 +37,7 @@ app.use('/api/skus', skuRoutes)
 app.use('/api/inventory', inventoryRoutes)
 app.use('/api/customers', customerRoutes)
 app.use('/api/sales', saleRoutes)
+app.use('/api/finance', financeRoutes)
 
 // 404 处理
 app.use((req, res) => {
