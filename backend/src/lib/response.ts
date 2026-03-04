@@ -20,7 +20,9 @@ export const fail = (res: Response, code: number, message: string) => {
     code,
     message,
   }
-  return res.status(code >= 500 ? 500 : 400).json(response)
+  // 使用业务码作为 HTTP 状态码，但限制在有效的 HTTP 状态码范围内
+  const httpStatus = code >= 400 && code < 600 ? code : 400
+  return res.status(httpStatus).json(response)
 }
 
 export const paginate = <T>(
