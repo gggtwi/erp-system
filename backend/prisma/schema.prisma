@@ -14,7 +14,7 @@ model User {
   username  String   @unique
   password  String
   name      String
-  role      String   // admin, finance, sales, warehouse, purchase
+  role      String   // super_admin, admin, finance, sales, warehouse, purchase
   phone     String?
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
