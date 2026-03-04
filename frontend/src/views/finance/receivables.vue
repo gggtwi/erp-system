@@ -26,28 +26,28 @@
       <el-row :gutter="20" style="margin: 20px 0" data-testid="receivables-stats-row">
         <el-col :span="6">
           <div data-testid="receivables-stat-total">
-            <el-statistic title="应收总额" :value="stats.totalAmount" :precision="2">
+            <el-statistic title="应收总额" :value="stats.totalAmount" :precision="2" :key="'total-' + stats.totalAmount">
               <template #prefix>¥</template>
             </el-statistic>
           </div>
         </el-col>
         <el-col :span="6">
           <div data-testid="receivables-stat-received">
-            <el-statistic title="已收款" :value="stats.paidAmount" :precision="2">
+            <el-statistic title="已收款" :value="stats.paidAmount" :precision="2" :key="'paid-' + stats.paidAmount">
               <template #prefix>¥</template>
             </el-statistic>
           </div>
         </el-col>
         <el-col :span="6">
           <div data-testid="receivables-stat-debt">
-            <el-statistic title="欠款金额" :value="stats.debtAmount" :precision="2">
+            <el-statistic title="欠款金额" :value="stats.debtAmount" :precision="2" :key="'debt-' + stats.debtAmount">
               <template #prefix>¥</template>
             </el-statistic>
           </div>
         </el-col>
         <el-col :span="6">
           <div data-testid="receivables-stat-customers">
-            <el-statistic title="欠款客户" :value="stats.customerCount">
+            <el-statistic title="欠款客户" :value="stats.customerCount" :key="'customers-' + stats.customerCount">
               <template #suffix>位</template>
             </el-statistic>
           </div>
