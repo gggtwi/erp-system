@@ -28,4 +28,7 @@ router.post('/:id/cancel', authMiddleware, rbacMiddleware(['admin', 'sales']), s
 // 获取打印数据
 router.get('/:id/print', authMiddleware, saleController.getPrint)
 
+// 删除订单（仅管理员）
+router.delete('/:id', authMiddleware, rbacMiddleware(['admin']), saleController.remove)
+
 export default router

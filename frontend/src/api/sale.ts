@@ -54,6 +54,11 @@ export function cancelSale(id: number) {
   return request.post<Sale>(`/sales/${id}/cancel`)
 }
 
+// 删除订单
+export function deleteSale(id: number) {
+  return request.delete(`/sales/${id}`)
+}
+
 // 客户列表
 export function getCustomers(params?: { keyword?: string }) {
   return request.get<Customer[]>('/customers', { params })

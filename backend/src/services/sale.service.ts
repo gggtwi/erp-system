@@ -748,3 +748,54 @@ export const getPrintData = async (id: number) => {
     remark: sale.remark,
   }
 }
+
+// 删除订单（仅限已取消状态）
+export const deleteSale = async (id: number) => {
+  const sale = await prisma.sale.findUnique({
+    where: { id },
+    include: {
+      items: true,
+      receivable: {
+        include: { payments: true }
+      },
+    },
+  })
+
+  if (!sale) {
+    throw new AppError(404, '订单不存在')
+  }
+
+  // 只允许删除已取消的订单
+  if (sale.status !== 'cancelled') {
+    throw new AppError(400, '只能删除已取消的订单')
+  }
+
+  // 使用事务删除订单及相关数据
+  await prisma.$transaction(async (tx) => {
+    // 删除收款记录
+    if (sale.receivable && sale.receivable.payments.length > 0) {
+      await tx.payment.deleteMany({
+        where: { receivableId: sale.receivable.id },
+      })
+    }
+
+    // 删除应收账款
+    if (sale.receivable) {
+      await tx.receivable.delete({
+        where: { id: sale.receivable.id },
+      })
+    }
+
+    // 删除订单项
+    await tx.saleItem.deleteMany({
+      where: { saleId: id },
+    })
+
+    // 删除订单
+    await tx.sale.delete({
+      where: { id },
+    })
+  })
+
+  return { success: true }
+}

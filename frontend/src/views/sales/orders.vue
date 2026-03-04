@@ -91,7 +91,7 @@
             {{ formatTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="250" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" data-testid="sales-orders-btn-detail" @click="handleDetail(row)">详情</el-button>
             <el-button
@@ -111,6 +111,15 @@
               @click="handleCancel(row)"
             >
               取消
+            </el-button>
+            <el-button
+              v-if="row.status === 'cancelled'"
+              link
+              type="danger"
+              data-testid="sales-orders-btn-delete"
+              @click="handleDelete(row)"
+            >
+              删除
             </el-button>
           </template>
         </el-table-column>
@@ -136,7 +145,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getSales, confirmSale, cancelSale } from '@/api/sale'
+import { getSales, confirmSale, cancelSale, deleteSale } from '@/api/sale'
 import type { Sale } from '@/types'
 import dayjs from 'dayjs'
 
@@ -273,6 +282,28 @@ async function handleCancel(row: Sale) {
     fetchData()
   } catch (error) {
     console.error(error)
+  }
+}
+
+// 删除订单
+async function handleDelete(row: Sale) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除订单「${row.orderNo}」吗？此操作不可恢复。`,
+      '删除确认',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+    await deleteSale(row.id)
+    ElMessage.success('订单已删除')
+    fetchData()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || '删除失败')
+    }
   }
 }
 
