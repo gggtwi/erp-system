@@ -61,6 +61,7 @@ export interface SKU {
   price: number
   costPrice: number
   barcode?: string
+  warningThreshold?: number // 库存预警阈值
   active: boolean
   inventory?: Inventory
 }

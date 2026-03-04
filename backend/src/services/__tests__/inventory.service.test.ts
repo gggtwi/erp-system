@@ -102,21 +102,43 @@ describe('Inventory Service', () => {
     })
 
     it('should identify low stock items', async () => {
-      const result = await inventoryService.getInventoryList({
-        warningThreshold: 200, // 高于当前库存
+      // 更新 SKU 的预警阈值为 200，高于当前库存 100
+      await prisma.sKU.update({
+        where: { id: testSKU.id },
+        data: { warningThreshold: 200 },
       })
+
+      const result = await inventoryService.getInventoryList({})
 
       const item = result.list.find((i) => i.skuId === testSKU.id)
       expect(item?.isLowStock).toBe(true)
+      expect(item?.warningThreshold).toBe(200)
+      
+      // 恢复默认阈值
+      await prisma.sKU.update({
+        where: { id: testSKU.id },
+        data: { warningThreshold: 10 },
+      })
     })
 
     it('should filter low stock only', async () => {
+      // 更新 SKU 的预警阈值为 200，高于当前库存 100
+      await prisma.sKU.update({
+        where: { id: testSKU.id },
+        data: { warningThreshold: 200 },
+      })
+
       const result = await inventoryService.getInventoryList({
         lowStock: true,
-        warningThreshold: 200,
       })
 
       expect(result.list.every((i) => i.isLowStock || i.isOutOfStock)).toBe(true)
+      
+      // 恢复默认阈值
+      await prisma.sKU.update({
+        where: { id: testSKU.id },
+        data: { warningThreshold: 10 },
+      })
     })
   })
 
@@ -445,5 +467,138 @@ describe('Inventory Warning', () => {
     expect(item).toBeDefined()
     expect(item?.quantity).toBe(3)
     expect(item?.shortage).toBe(7)
+  })
+})
+
+describe('Warning Threshold Management', () => {
+  let testCategory: any
+  let testProduct: any
+  let testSKU: any
+
+  beforeAll(async () => {
+    testCategory = await prisma.category.create({
+      data: { name: '测试分类-阈值', sort: 0 },
+    })
+
+    testProduct = await prisma.product.create({
+      data: {
+        code: 'PROD-THR-001',
+        name: '测试商品-阈值',
+        categoryId: testCategory.id,
+        unit: '台',
+      },
+    })
+
+    testSKU = await prisma.sKU.create({
+      data: {
+        productId: testProduct.id,
+        code: 'SKU-THR-001',
+        name: '测试SKU-阈值',
+        price: 1999,
+        costPrice: 1000,
+        warningThreshold: 10,
+      },
+    })
+
+    await prisma.inventory.create({
+      data: {
+        skuId: testSKU.id,
+        quantity: 50,
+      },
+    })
+  })
+
+  afterAll(async () => {
+    await prisma.inventory.deleteMany({
+      where: { skuId: testSKU.id },
+    })
+    await prisma.sKU.delete({ where: { id: testSKU.id } })
+    await prisma.product.delete({ where: { id: testProduct.id } })
+    await prisma.category.delete({ where: { id: testCategory.id } })
+  })
+
+  describe('updateWarningThreshold', () => {
+    it('should update single SKU warning threshold', async () => {
+      const result = await inventoryService.updateWarningThreshold(testSKU.id, 20)
+
+      expect(result.skuId).toBe(testSKU.id)
+      expect(result.warningThreshold).toBe(20)
+
+      // 验证数据库已更新
+      const sku = await prisma.sKU.findUnique({ where: { id: testSKU.id } })
+      expect(sku?.warningThreshold).toBe(20)
+    })
+
+    it('should reject negative threshold', async () => {
+      await expect(
+        inventoryService.updateWarningThreshold(testSKU.id, -5)
+      ).rejects.toThrow('预警阈值不能为负数')
+    })
+
+    it('should reject non-existent SKU', async () => {
+      await expect(
+        inventoryService.updateWarningThreshold(99999, 10)
+      ).rejects.toThrow('SKU不存在')
+    })
+  })
+
+  describe('batchUpdateWarningThreshold', () => {
+    let testSKU2: any
+
+    beforeAll(async () => {
+      testSKU2 = await prisma.sKU.create({
+        data: {
+          productId: testProduct.id,
+          code: 'SKU-THR-002',
+          name: '测试SKU-阈值2',
+          price: 2999,
+          costPrice: 1500,
+          warningThreshold: 10,
+        },
+      })
+    })
+
+    afterAll(async () => {
+      await prisma.sKU.delete({ where: { id: testSKU2.id } })
+    })
+
+    it('should batch update warning thresholds', async () => {
+      const updates = [
+        { skuId: testSKU.id, threshold: 15 },
+        { skuId: testSKU2.id, threshold: 25 },
+      ]
+
+      const result = await inventoryService.batchUpdateWarningThreshold(updates)
+
+      expect(result.success).toBe(2)
+      expect(result.failed).toBe(0)
+      expect(result.results).toHaveLength(2)
+
+      // 验证数据库已更新
+      const sku1 = await prisma.sKU.findUnique({ where: { id: testSKU.id } })
+      const sku2 = await prisma.sKU.findUnique({ where: { id: testSKU2.id } })
+      expect(sku1?.warningThreshold).toBe(15)
+      expect(sku2?.warningThreshold).toBe(25)
+    })
+
+    it('should handle errors in batch update', async () => {
+      const updates = [
+        { skuId: testSKU.id, threshold: 30 },
+        { skuId: 99999, threshold: 10 }, // 不存在的 SKU
+        { skuId: testSKU2.id, threshold: -5 }, // 无效阈值
+      ]
+
+      const result = await inventoryService.batchUpdateWarningThreshold(updates)
+
+      expect(result.success).toBe(1)
+      expect(result.failed).toBe(2)
+      expect(result.errors).toHaveLength(2)
+    })
+
+    it('should reject empty updates', async () => {
+      await expect(
+        inventoryService.batchUpdateWarningThreshold([])
+      ).rejects.toThrow('更新数据不能为空')
+    })
   })
 })

@@ -15,6 +15,30 @@ export interface InventoryStats {
   totalValue: number
 }
 
+export interface InventoryItem extends Inventory {
+  sku: SKU
+  skuId: number
+  skuCode: string
+  skuName: string
+  productId: number
+  productCode: string
+  productName: string
+  categoryId: number
+  categoryName: string
+  unit: string
+  price: number
+  costPrice: number
+  warningThreshold: number
+  availableQty: number
+  isLowStock: boolean
+  isOutOfStock: boolean
+}
+
+export interface WarningThresholdUpdate {
+  skuId: number
+  threshold: number
+}
+
 // 库存统计
 export function getInventoryStats() {
   return request.get<InventoryStats>('/inventory/stats')
@@ -22,7 +46,7 @@ export function getInventoryStats() {
 
 // 库存列表
 export function getInventoryList(params: InventoryQuery) {
-  return request.get<PaginateResponse<Inventory & { sku: SKU }>>('/inventory', { params })
+  return request.get<PaginateResponse<InventoryItem>>('/inventory', { params })
 }
 
 // 库存详情
@@ -33,6 +57,16 @@ export function getInventoryDetail(skuId: number) {
 // 库存调整
 export function adjustInventory(data: { skuId: number; quantity: number; type: string; remark?: string }) {
   return request.post('/inventory/adjust', data)
+}
+
+// 更新单个 SKU 预警阈值
+export function updateWarningThreshold(skuId: number, threshold: number) {
+  return request.put(`/inventory/${skuId}/warning-threshold`, { threshold })
+}
+
+// 批量更新预警阈值
+export function batchUpdateWarningThreshold(updates: WarningThresholdUpdate[]) {
+  return request.post('/inventory/warning-threshold/batch', { updates })
 }
 
 // SKU 列表

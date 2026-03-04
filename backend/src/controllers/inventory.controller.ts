@@ -245,3 +245,50 @@ export const getInventoryStats = async (
     next(error)
   }
 }
+
+// ==================== 预警阈值管理 ====================
+
+// 更新单个 SKU 预警阈值
+export const updateWarningThreshold = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const skuId = parseInt(req.params.skuId as string)
+    const { threshold } = req.body
+
+    if (isNaN(skuId)) {
+      return fail(res, 400, '无效的 SKU ID')
+    }
+
+    if (threshold === undefined || threshold === null) {
+      return fail(res, 400, '请输入预警阈值')
+    }
+
+    const result = await inventoryService.updateWarningThreshold(skuId, parseInt(threshold))
+    return success(res, result, '预警阈值更新成功')
+  } catch (error) {
+    next(error)
+  }
+}
+
+// 批量更新预警阈值
+export const batchUpdateWarningThreshold = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { updates } = req.body
+
+    if (!updates || !Array.isArray(updates) || updates.length === 0) {
+      return fail(res, 400, '请提供更新数据')
+    }
+
+    const result = await inventoryService.batchUpdateWarningThreshold(updates)
+    return success(res, result, `成功更新 ${result.success} 条记录`)
+  } catch (error) {
+    next(error)
+  }
+}

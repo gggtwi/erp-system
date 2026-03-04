@@ -35,9 +35,14 @@
       <template #header>
         <div class="card-header">
           <span>库存预警商品</span>
-          <el-button type="primary" size="small" data-testid="inventory-btn-refresh" @click="fetchData">
-            刷新
-          </el-button>
+          <div>
+            <el-button type="primary" size="small" data-testid="inventory-btn-batch" @click="handleBatchSetting">
+              批量设置阈值
+            </el-button>
+            <el-button type="primary" size="small" data-testid="inventory-btn-refresh" @click="fetchData">
+              刷新
+            </el-button>
+          </div>
         </div>
       </template>
       
@@ -85,6 +90,22 @@
             <el-tag :type="row.quantity <= 0 ? 'danger' : 'warning'">
               {{ row.quantity }}
             </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="预警阈值" width="120">
+          <template #default="{ row }">
+            <div class="threshold-cell">
+              <span>{{ row.warningThreshold }}</span>
+              <el-button 
+                link 
+                type="primary" 
+                size="small" 
+                @click="handleEditThreshold(row)"
+                data-testid="btn-edit-threshold"
+              >
+                编辑
+              </el-button>
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="销售价" width="100">
@@ -175,13 +196,91 @@
         </el-button>
       </template>
     </el-dialog>
+    
+    <!-- 预警阈值编辑对话框 -->
+    <el-dialog
+      v-model="thresholdDialogVisible"
+      title="编辑预警阈值"
+      width="450px"
+      data-testid="threshold-edit-dialog"
+    >
+      <el-form :model="thresholdForm" label-width="80px" data-testid="threshold-edit-form">
+        <el-form-item label="商品信息">
+          <div>
+            <div style="font-weight: 500">{{ thresholdForm.productName }}</div>
+            <div style="color: #909399; font-size: 13px">{{ thresholdForm.skuName }}</div>
+          </div>
+        </el-form-item>
+        <el-form-item label="当前库存">
+          <el-tag :type="thresholdForm.currentQty <= thresholdForm.warningThreshold ? 'warning' : 'success'">
+            {{ thresholdForm.currentQty }}
+          </el-tag>
+        </el-form-item>
+        <el-form-item label="预警阈值">
+          <el-input-number
+            v-model="thresholdForm.warningThreshold"
+            :min="0"
+            :max="9999"
+            data-testid="threshold-input-value"
+          />
+          <div style="color: #909399; font-size: 12px; margin-top: 5px">
+            当库存低于此值时将显示预警
+          </div>
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <el-button data-testid="threshold-btn-cancel" @click="thresholdDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="savingThreshold" data-testid="threshold-btn-submit" @click="handleThresholdSubmit">
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
+    
+    <!-- 批量设置预警阈值对话框 -->
+    <el-dialog
+      v-model="batchDialogVisible"
+      title="批量设置预警阈值"
+      width="600px"
+      data-testid="batch-threshold-dialog"
+    >
+      <el-form :model="batchForm" label-width="100px" data-testid="batch-threshold-form">
+        <el-form-item label="统一阈值">
+          <el-input-number
+            v-model="batchForm.threshold"
+            :min="0"
+            :max="9999"
+            data-testid="batch-input-threshold"
+          />
+          <div style="color: #909399; font-size: 12px; margin-top: 5px">
+            将所有预警商品的预警阈值设置为统一值
+          </div>
+        </el-form-item>
+        <el-form-item label="影响范围">
+          <el-tag>将更新 {{ warningList.length }} 个商品的预警阈值</el-tag>
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <el-button data-testid="batch-btn-cancel" @click="batchDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="savingBatch" data-testid="batch-btn-submit" @click="handleBatchSubmit">
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getInventoryList, getInventoryStats, adjustInventory } from '@/api/inventory'
+import { 
+  getInventoryList, 
+  getInventoryStats, 
+  adjustInventory,
+  updateWarningThreshold,
+  batchUpdateWarningThreshold
+} from '@/api/inventory'
 import type { Inventory } from '@/types'
 
 // 统计数据
@@ -208,6 +307,24 @@ const adjustForm = reactive({
   currentQty: 0,
   quantity: 0,
   remark: '',
+})
+
+// 预警阈值编辑
+const thresholdDialogVisible = ref(false)
+const savingThreshold = ref(false)
+const thresholdForm = reactive({
+  skuId: 0,
+  skuName: '',
+  productName: '',
+  currentQty: 0,
+  warningThreshold: 10,
+})
+
+// 批量设置
+const batchDialogVisible = ref(false)
+const savingBatch = ref(false)
+const batchForm = reactive({
+  threshold: 10,
 })
 
 // 获取数据
@@ -273,6 +390,62 @@ async function handleAdjustSubmit() {
   }
 }
 
+// 打开预警阈值编辑对话框
+function handleEditThreshold(row: any) {
+  thresholdForm.skuId = row.skuId
+  thresholdForm.skuName = row.skuName || ''
+  thresholdForm.productName = row.productName || ''
+  thresholdForm.currentQty = row.quantity
+  thresholdForm.warningThreshold = row.warningThreshold || 10
+  thresholdDialogVisible.value = true
+}
+
+// 提交预警阈值修改
+async function handleThresholdSubmit() {
+  savingThreshold.value = true
+  try {
+    await updateWarningThreshold(thresholdForm.skuId, thresholdForm.warningThreshold)
+    ElMessage.success('预警阈值更新成功')
+    thresholdDialogVisible.value = false
+    fetchData()
+  } catch (error: any) {
+    ElMessage.error(error.message || '预警阈值更新失败')
+  } finally {
+    savingThreshold.value = false
+  }
+}
+
+// 打开批量设置对话框
+function handleBatchSetting() {
+  batchForm.threshold = 10
+  batchDialogVisible.value = true
+}
+
+// 提交批量设置
+async function handleBatchSubmit() {
+  if (warningList.value.length === 0) {
+    ElMessage.warning('没有需要更新的商品')
+    return
+  }
+  
+  savingBatch.value = true
+  try {
+    const updates = warningList.value.map(item => ({
+      skuId: item.skuId,
+      threshold: batchForm.threshold,
+    }))
+    
+    const result = await batchUpdateWarningThreshold(updates)
+    ElMessage.success(`成功更新 ${result.success} 条记录`)
+    batchDialogVisible.value = false
+    fetchData()
+  } catch (error: any) {
+    ElMessage.error(error.message || '批量更新失败')
+  } finally {
+    savingBatch.value = false
+  }
+}
+
 // 解析 specs JSON 字符串
 function parseSpecs(specs: string): Record<string, string> {
   try {
@@ -293,6 +466,13 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+  
+  .threshold-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
 }
 </style>

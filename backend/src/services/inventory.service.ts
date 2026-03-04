@@ -35,7 +35,6 @@ export const getInventoryList = async (query: InventoryQuery) => {
     keyword,
     categoryId,
     lowStock,
-    warningThreshold = 10,
     page = 1,
     pageSize = 20,
   } = query
@@ -70,29 +69,32 @@ export const getInventoryList = async (query: InventoryQuery) => {
     orderBy: [{ id: 'desc' }],
   })
 
-  // 处理库存数据
-  let list = skus.map((sku) => ({
-    skuId: sku.id,
-    skuCode: sku.code,
-    skuName: sku.name,
-    specs: sku.specs, // 规格（颜色等）
-    productId: sku.productId,
-    productCode: sku.product.code,
-    productName: sku.product.name,
-    categoryId: sku.product.categoryId,
-    categoryName: sku.product.category.name,
-    unit: sku.product.unit,
-    price: sku.price,
-    costPrice: sku.costPrice,
-    quantity: sku.inventory?.quantity || 0,
-    lockedQty: sku.inventory?.lockedQty || 0,
-    availableQty:
-      (sku.inventory?.quantity || 0) - (sku.inventory?.lockedQty || 0),
-    isLowStock:
-      (sku.inventory?.quantity || 0) <= warningThreshold &&
-      (sku.inventory?.quantity || 0) > 0,
-    isOutOfStock: (sku.inventory?.quantity || 0) === 0,
-  }))
+  // 处理库存数据 - 使用每个 SKU 自己的预警阈值
+  let list = skus.map((sku) => {
+    const warningThreshold = sku.warningThreshold || 10
+    const quantity = sku.inventory?.quantity || 0
+    return {
+      skuId: sku.id,
+      skuCode: sku.code,
+      skuName: sku.name,
+      specs: sku.specs, // 规格（颜色等）
+      productId: sku.productId,
+      productCode: sku.product.code,
+      productName: sku.product.name,
+      categoryId: sku.product.categoryId,
+      categoryName: sku.product.category.name,
+      unit: sku.product.unit,
+      price: sku.price,
+      costPrice: sku.costPrice,
+      warningThreshold,
+      quantity,
+      lockedQty: sku.inventory?.lockedQty || 0,
+      availableQty:
+        (sku.inventory?.quantity || 0) - (sku.inventory?.lockedQty || 0),
+      isLowStock: quantity <= warningThreshold && quantity > 0,
+      isOutOfStock: quantity === 0,
+    }
+  })
 
   // 低库存筛选
   if (lowStock === true) {
@@ -578,30 +580,32 @@ export interface InventoryStats {
   totalValue: number
 }
 
-// 获取库存统计
-export const getInventoryStats = async (warningThreshold = 10): Promise<InventoryStats> => {
+// 获取库存统计 - 使用每个 SKU 自己的预警阈值
+export const getInventoryStats = async (defaultThreshold = 10): Promise<InventoryStats> => {
   // 商品总数
   const totalProducts = await prisma.product.count({ where: { active: true } })
   
   // SKU 总数
   const totalSkus = await prisma.sKU.count({ where: { active: true } })
   
-  // 库存预警数量
-  const warningCount = await prisma.inventory.count({
-    where: {
-      quantity: { lte: warningThreshold },
+  // 库存预警数量 - 基于每个 SKU 自己的预警阈值
+  const inventories = await prisma.inventory.findMany({
+    include: {
+      sku: { select: { warningThreshold: true, costPrice: true } },
     },
   })
   
-  // 库存总值（按成本价计算）
-  const inventories = await prisma.inventory.findMany({
-    include: {
-      sku: { select: { costPrice: true } },
-    },
-  })
-  const totalValue = inventories.reduce((sum, inv) => {
-    return sum + inv.quantity * (inv.sku?.costPrice || 0)
-  }, 0)
+  // 计算预警数量和库存总值
+  let warningCount = 0
+  let totalValue = 0
+  
+  for (const inv of inventories) {
+    const threshold = inv.sku?.warningThreshold || defaultThreshold
+    if (inv.quantity <= threshold) {
+      warningCount++
+    }
+    totalValue += inv.quantity * (inv.sku?.costPrice || 0)
+  }
   
   return {
     totalProducts,
@@ -617,14 +621,12 @@ export interface WarningConfig {
   threshold?: number
 }
 
-// 获取库存预警列表
+// 获取库存预警列表 - 使用每个 SKU 自己的预警阈值
 export const getInventoryWarning = async (config: WarningConfig = {}) => {
-  const { threshold = 10 } = config
+  const { threshold: defaultThreshold = 10 } = config
 
+  // 获取所有库存
   const inventories = await prisma.inventory.findMany({
-    where: {
-      quantity: { lte: threshold },
-    },
     include: {
       sku: {
         include: {
@@ -635,19 +637,106 @@ export const getInventoryWarning = async (config: WarningConfig = {}) => {
     orderBy: { quantity: 'asc' },
   })
 
-  return inventories.map((inv) => ({
-    skuId: inv.skuId,
-    skuCode: inv.sku.code,
-    skuName: inv.sku.name,
-    specs: inv.sku.specs,
-    productId: inv.sku.productId,
-    productCode: inv.sku.product.code,
-    productName: inv.sku.product.name,
-    categoryName: inv.sku.product.category.name,
-    price: inv.sku.price,
-    costPrice: inv.sku.costPrice,
-    quantity: inv.quantity,
-    threshold,
-    shortage: threshold - inv.quantity,
-  }))
+  // 过滤出低于预警阈值的库存
+  const warningList = inventories.filter((inv) => {
+    const threshold = inv.sku?.warningThreshold || defaultThreshold
+    return inv.quantity <= threshold
+  })
+
+  return warningList.map((inv) => {
+    const threshold = inv.sku?.warningThreshold || defaultThreshold
+    return {
+      skuId: inv.skuId,
+      skuCode: inv.sku.code,
+      skuName: inv.sku.name,
+      specs: inv.sku.specs,
+      productId: inv.sku.productId,
+      productCode: inv.sku.product.code,
+      productName: inv.sku.product.name,
+      categoryName: inv.sku.product.category.name,
+      price: inv.sku.price,
+      costPrice: inv.sku.costPrice,
+      quantity: inv.quantity,
+      warningThreshold: threshold,
+      shortage: threshold - inv.quantity,
+    }
+  })
+}
+
+// ==================== 预警阈值管理 ====================
+
+// 更新单个 SKU 预警阈值
+export const updateWarningThreshold = async (skuId: number, threshold: number) => {
+  if (threshold < 0) {
+    throw new AppError(400, '预警阈值不能为负数')
+  }
+
+  const sku = await prisma.sKU.findUnique({
+    where: { id: skuId },
+  })
+
+  if (!sku) {
+    throw new AppError(404, 'SKU不存在')
+  }
+
+  const updated = await prisma.sKU.update({
+    where: { id: skuId },
+    data: { warningThreshold: threshold },
+  })
+
+  return {
+    skuId: updated.id,
+    skuCode: updated.code,
+    skuName: updated.name,
+    warningThreshold: updated.warningThreshold,
+  }
+}
+
+// 批量更新预警阈值
+export const batchUpdateWarningThreshold = async (updates: Array<{ skuId: number; threshold: number }>) => {
+  if (!updates || updates.length === 0) {
+    throw new AppError(400, '更新数据不能为空')
+  }
+
+  const results = []
+  const errors = []
+
+  for (const item of updates) {
+    try {
+      if (item.threshold < 0) {
+        errors.push({ skuId: item.skuId, error: '预警阈值不能为负数' })
+        continue
+      }
+
+      const sku = await prisma.sKU.findUnique({
+        where: { id: item.skuId },
+      })
+
+      if (!sku) {
+        errors.push({ skuId: item.skuId, error: 'SKU不存在' })
+        continue
+      }
+
+      const updated = await prisma.sKU.update({
+        where: { id: item.skuId },
+        data: { warningThreshold: item.threshold },
+      })
+
+      results.push({
+        skuId: updated.id,
+        skuCode: updated.code,
+        skuName: updated.name,
+        warningThreshold: updated.warningThreshold,
+      })
+    } catch (error: any) {
+      errors.push({ skuId: item.skuId, error: error.message })
+    }
+  }
+
+  return {
+    success: results.length,
+    failed: errors.length,
+    results,
+    errors,
+  }
 }

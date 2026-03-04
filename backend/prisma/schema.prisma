@@ -87,17 +87,18 @@ model SpecType {
 }
 
 model SKU {
-  id        Int      @id @default(autoincrement())
-  productId Int
-  code      String   @unique
-  name      String
-  specs     String?  // JSON: {"颜色":"红色","尺码":"XL"} 规格类型名:规格值
-  price     Float
-  costPrice Float
-  barcode   String?
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               Int      @id @default(autoincrement())
+  productId        Int
+  code             String   @unique
+  name             String
+  specs            String?  // JSON: {"颜色":"红色","尺码":"XL"} 规格类型名:规格值
+  price            Float
+  costPrice        Float
+  barcode          String?
+  warningThreshold Int      @default(10) // 库存预警阈值
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   product       Product        @relation(fields: [productId], references: [id])
   inventory     Inventory?

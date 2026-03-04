@@ -24,7 +24,7 @@ router.get('/:skuId', authMiddleware, inventoryController.getInventoryDetail)
 router.post(
   '/adjust',
   authMiddleware,
-  rbacMiddleware(['admin', 'warehouse']),
+  rbacMiddleware(['admin', 'warehouse', 'super_admin']),
   inventoryController.adjustInventory
 )
 
@@ -42,7 +42,7 @@ router.get('/serials/list', authMiddleware, inventoryController.getSerialNumberL
 router.post(
   '/serials',
   authMiddleware,
-  rbacMiddleware(['admin', 'warehouse']),
+  rbacMiddleware(['admin', 'warehouse', 'super_admin']),
   inventoryController.createSerialNumbers
 )
 
@@ -51,6 +51,24 @@ router.get(
   '/serials/:serialNo',
   authMiddleware,
   inventoryController.getSerialNumberDetail
+)
+
+// ==================== 预警阈值管理 ====================
+
+// 更新单个 SKU 预警阈值（管理员、仓库、超级管理员）
+router.put(
+  '/:skuId/warning-threshold',
+  authMiddleware,
+  rbacMiddleware(['admin', 'warehouse', 'super_admin']),
+  inventoryController.updateWarningThreshold
+)
+
+// 批量更新预警阈值（管理员、仓库、超级管理员）
+router.post(
+  '/warning-threshold/batch',
+  authMiddleware,
+  rbacMiddleware(['admin', 'warehouse', 'super_admin']),
+  inventoryController.batchUpdateWarningThreshold
 )
 
 export default router
