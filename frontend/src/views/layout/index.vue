@@ -1,0 +1,225 @@
+<template>
+  <el-container class="layout-container">
+    <!-- 侧边栏 -->
+    <el-aside :width="isCollapse ? '64px' : '220px'" class="sidebar">
+      <div class="logo">
+        <img src="@/assets/vue.svg" alt="Logo" />
+        <span v-show="!isCollapse">ERP 系统</span>
+      </div>
+      
+      <el-menu
+        :default-active="activeMenu"
+        :collapse="isCollapse"
+        :unique-opened="true"
+        router
+        background-color="#304156"
+        text-color="#bfcbd9"
+        active-text-color="#409eff"
+      >
+        <el-sub-menu index="inventory">
+          <template #title>
+            <el-icon><Box /></el-icon>
+            <span>库存管理</span>
+          </template>
+          <el-menu-item index="/inventory/products">商品管理</el-menu-item>
+          <el-menu-item index="/inventory/overview">库存概览</el-menu-item>
+        </el-sub-menu>
+        
+        <el-sub-menu index="sales">
+          <template #title>
+            <el-icon><ShoppingCart /></el-icon>
+            <span>销售管理</span>
+          </template>
+          <el-menu-item index="/sales/create">销售开单</el-menu-item>
+          <el-menu-item index="/sales/orders">订单列表</el-menu-item>
+        </el-sub-menu>
+        
+        <el-menu-item index="/finance/receivables">
+          <el-icon><Money /></el-icon>
+          <span>应收账款</span>
+        </el-menu-item>
+        
+        <el-menu-item index="/reports/sales">
+          <el-icon><DataAnalysis /></el-icon>
+          <span>销售报表</span>
+        </el-menu-item>
+      </el-menu>
+    </el-aside>
+    
+    <el-container>
+      <!-- 顶部导航 -->
+      <el-header class="header">
+        <div class="left">
+          <el-icon
+            class="collapse-btn"
+            @click="isCollapse = !isCollapse"
+          >
+            <Fold v-if="!isCollapse" />
+            <Expand v-else />
+          </el-icon>
+          
+          <el-breadcrumb separator="/">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item v-if="currentRoute.meta?.title">
+              {{ currentRoute.meta.title }}
+            </el-breadcrumb-item>
+          </el-breadcrumb>
+        </div>
+        
+        <div class="right">
+          <el-dropdown @command="handleCommand">
+            <span class="user-info">
+              <el-avatar :size="32" icon="UserFilled" />
+              <span class="username">{{ userStore.username }}</span>
+              <el-icon><ArrowDown /></el-icon>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">个人信息</el-dropdown-item>
+                <el-dropdown-item command="password">修改密码</el-dropdown-item>
+                <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+      </el-header>
+      
+      <!-- 主内容区 -->
+      <el-main class="main">
+        <router-view v-slot="{ Component }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
+      </el-main>
+    </el-container>
+  </el-container>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { useUserStore } from '@/stores/user'
+
+const route = useRoute()
+const router = useRouter()
+const userStore = useUserStore()
+
+const isCollapse = ref(false)
+const currentRoute = computed(() => route)
+const activeMenu = computed(() => route.path)
+
+async function handleCommand(command: string) {
+  switch (command) {
+    case 'logout':
+      try {
+        await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+          type: 'warning',
+        })
+        await userStore.logout()
+        ElMessage.success('已退出登录')
+        router.push('/login')
+      } catch (e) {
+        // 取消退出
+      }
+      break
+    case 'password':
+      ElMessage.info('修改密码功能开发中')
+      break
+    case 'profile':
+      ElMessage.info('个人信息功能开发中')
+      break
+  }
+}
+</script>
+
+<style scoped lang="scss">
+.layout-container {
+  height: 100vh;
+}
+
+.sidebar {
+  background-color: #304156;
+  transition: width 0.3s;
+  overflow: hidden;
+  
+  .logo {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: #263445;
+    
+    img {
+      width: 32px;
+      height: 32px;
+    }
+    
+    span {
+      color: #fff;
+      font-size: 18px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+  }
+  
+  .el-menu {
+    border-right: none;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  border-bottom: 1px solid #dcdfe6;
+  padding: 0 20px;
+  
+  .left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    
+    .collapse-btn {
+      font-size: 20px;
+      cursor: pointer;
+      color: #606266;
+      
+      &:hover {
+        color: #409eff;
+      }
+    }
+  }
+  
+  .right {
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      
+      .username {
+        color: #606266;
+      }
+    }
+  }
+}
+
+.main {
+  background-color: #f0f2f5;
+  overflow-y: auto;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

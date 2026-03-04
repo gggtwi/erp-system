@@ -48,6 +48,7 @@ export interface Product {
   active: boolean
   skus?: SKU[]
   createdAt: string
+  selectedSkuId?: number
 }
 
 // SKU
@@ -111,4 +112,28 @@ export interface SaleItem {
   price: number
   amount: number
   serialNo?: string
+}
+
+// 应收账款
+export interface Receivable {
+  id: number
+  customerId: number
+  customer?: Customer
+  saleId: number
+  amount: number
+  paidAmount: number
+  status: string
+  dueDate?: string
+  createdAt: string
+}
+
+// 收款记录
+export interface Payment {
+  id: number
+  receivableId: number
+  customerId: number
+  amount: number
+  method: string
+  remark?: string
+  createdAt: string
 }
