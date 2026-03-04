@@ -356,7 +356,7 @@ test.describe('商品管理模块', () => {
     await productsTable.locator('tbody tr:first-child').getByTestId('products-btn-delete').click();
     
     // 确认删除
-    await page.click('.el-message-box button:has-text("OK")');
+    await page.click('.el-message-box button:has-text("确定")');
     
     // 由于后端自动创建默认SKU，应该显示无法删除的提示
     await expect(page.locator('.el-message--error')).toContainText(/SKU|无法删除/);
@@ -377,7 +377,7 @@ test.describe('商品管理模块', () => {
       if (skuCount && parseInt(skuCount) > 0) {
         // 尝试删除
         await rows.nth(i).getByTestId('products-btn-delete').click();
-        await page.click('.el-message-box button:has-text("OK")');
+        await page.click('.el-message-box button:has-text("确定")');
         
         // 验证显示错误提示或警告
         const errorMessage = page.locator('.el-message--error, .el-message--warning');
@@ -656,7 +656,7 @@ test.describe('商品管理模块', () => {
     await page.getByTestId('products-btn-search').click();
     await page.waitForTimeout(1000);
     
-    // 验证显示暂无数据（Element Plus 默认显示 "No Data"）
-    await expect(page.getByText('No Data')).toBeVisible();
+    // 验证显示暂无数据
+    await expect(page.getByText('暂无数据')).toBeVisible();
   });
 });

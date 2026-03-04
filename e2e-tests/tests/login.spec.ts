@@ -87,7 +87,8 @@ test.describe('登录认证模块', () => {
     await page.getByTestId('login-input-password').fill('wrongpassword');
     await page.getByTestId('login-btn-submit').click();
     
-    // 验证显示错误提示
+    // 等待API响应并验证显示错误提示
+    await page.waitForSelector('.el-message--error', { timeout: 5000 });
     await expect(page.locator('.el-message--error').first()).toContainText('用户名或密码错误');
   });
 
@@ -154,7 +155,9 @@ test.describe('登录认证模块', () => {
     
     // 验证登录失败，系统不应报错
     await expect(page).toHaveURL(/login/);
-    await expect(page.locator('.el-message--error')).toBeVisible();
+    // 等待API响应并验证错误提示
+    await page.waitForSelector('.el-message--error', { timeout: 5000 });
+    await expect(page.locator('.el-message--error').first()).toBeVisible();
   });
 
   // TC-AUTH-016: XSS攻击测试
@@ -194,8 +197,11 @@ test.describe('登录认证模块', () => {
       await page.getByTestId('layout-user-dropdown').click();
       await logoutBtn.click();
       
+      // 处理确认对话框 - 点击确定按钮
+      await page.getByRole('button', { name: '确定' }).click();
+      
       // 验证跳转到登录页
-      await expect(page).toHaveURL(/login/);
+      await expect(page).toHaveURL(/login/, { timeout: 5000 });
     } else {
       // 如果没有找到登出按钮，跳过测试
       test.skip(true, '登出按钮未找到');
