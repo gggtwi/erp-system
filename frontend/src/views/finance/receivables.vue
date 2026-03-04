@@ -276,11 +276,13 @@ async function fetchData() {
     tableData.value = result.list
     pagination.total = result.total
     
-    // 更新统计（从后端获取全量数据）
-    stats.totalAmount = statsResult.totalAmount
-    stats.paidAmount = statsResult.totalPaid
-    stats.debtAmount = statsResult.totalRemaining
-    stats.customerCount = statsResult.debtCustomerCount
+    // 更新统计（使用 Object.assign 确保响应式更新）
+    Object.assign(stats, {
+      totalAmount: statsResult.totalAmount,
+      paidAmount: statsResult.totalPaid,
+      debtAmount: statsResult.totalRemaining,
+      customerCount: statsResult.debtCustomerCount,
+    })
   } catch (error) {
     console.error(error)
   } finally {
