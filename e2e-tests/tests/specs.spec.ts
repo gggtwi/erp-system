@@ -53,16 +53,18 @@ test.describe('规格管理模块', () => {
       await editButton.click();
       await waitForDialog(page);
       
-      // 修改规格名称
+      // 修改规格名称 - 使用短名称避免超过20字符限制
       const nameInput = page.getByTestId('spec-form-input-name');
-      const originalName = await nameInput.inputValue();
-      await nameInput.fill(`${originalName}-已修改`);
+      await nameInput.fill(`规格-${Date.now().toString().slice(-6)}`);
       
       // 点击确定
       await page.getByTestId('spec-form-btn-submit').click();
       
-      // 验证更新成功
-      await expect(page.locator('.el-message--success')).toBeVisible();
+      // 等待对话框关闭
+      await page.waitForSelector('.el-dialog', { state: 'hidden', timeout: 5000 });
+      
+      // 验证更新成功 - 增加超时时间
+      await expect(page.locator('.el-message--success')).toBeVisible({ timeout: 5000 });
     }
   });
 
