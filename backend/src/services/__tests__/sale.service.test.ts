@@ -482,7 +482,7 @@ describe('Sale Service', () => {
         {
           customerId: testCustomer.id,
           items: [{ skuId: testSKU2.id, quantity: 1, price: 1999 }],
-          debtAmount: 1999,
+          paidAmount: 0, // unpaid -> debtAmount will be calculated
         },
         testUser.id
       )
