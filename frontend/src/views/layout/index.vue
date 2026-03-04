@@ -1,8 +1,8 @@
 <template>
-  <el-container class="layout-container">
+  <el-container class="layout-container" data-testid="layout-container">
     <!-- 侧边栏 -->
-    <el-aside :width="isCollapse ? '64px' : '220px'" class="sidebar">
-      <div class="logo">
+    <el-aside :width="isCollapse ? '64px' : '220px'" class="sidebar" data-testid="layout-sidebar">
+      <div class="logo" data-testid="layout-logo">
         <img src="@/assets/vue.svg" alt="Logo" />
         <span v-show="!isCollapse">ERP 系统</span>
       </div>
@@ -15,31 +15,38 @@
         background-color="#304156"
         text-color="#bfcbd9"
         active-text-color="#409eff"
+        data-testid="layout-nav-menu"
       >
-        <el-sub-menu index="inventory">
+        <el-sub-menu index="inventory" data-testid="nav-menu-inventory">
           <template #title>
             <el-icon><Box /></el-icon>
             <span>库存管理</span>
           </template>
-          <el-menu-item index="/inventory/products">商品管理</el-menu-item>
-          <el-menu-item index="/inventory/overview">库存概览</el-menu-item>
+          <el-menu-item index="/inventory/products" data-testid="nav-menu-products">商品管理</el-menu-item>
+          <el-menu-item index="/inventory/overview" data-testid="nav-menu-overview">库存概览</el-menu-item>
+          <el-menu-item index="/inventory/specs" data-testid="nav-menu-specs">规格管理</el-menu-item>
         </el-sub-menu>
         
-        <el-sub-menu index="sales">
+        <el-sub-menu index="sales" data-testid="nav-menu-sales">
           <template #title>
             <el-icon><ShoppingCart /></el-icon>
             <span>销售管理</span>
           </template>
-          <el-menu-item index="/sales/create">销售开单</el-menu-item>
-          <el-menu-item index="/sales/orders">订单列表</el-menu-item>
+          <el-menu-item index="/sales/create" data-testid="nav-menu-create-sale">销售开单</el-menu-item>
+          <el-menu-item index="/sales/orders" data-testid="nav-menu-orders">订单列表</el-menu-item>
         </el-sub-menu>
         
-        <el-menu-item index="/finance/receivables">
+        <el-menu-item index="/customers" data-testid="nav-menu-customers">
+          <el-icon><User /></el-icon>
+          <span>客户管理</span>
+        </el-menu-item>
+        
+        <el-menu-item index="/finance/receivables" data-testid="nav-menu-receivables">
           <el-icon><Money /></el-icon>
           <span>应收账款</span>
         </el-menu-item>
         
-        <el-menu-item index="/reports/sales">
+        <el-menu-item index="/reports/sales" data-testid="nav-menu-sales-report">
           <el-icon><DataAnalysis /></el-icon>
           <span>销售报表</span>
         </el-menu-item>
@@ -48,17 +55,18 @@
     
     <el-container>
       <!-- 顶部导航 -->
-      <el-header class="header">
+      <el-header class="header" data-testid="layout-header">
         <div class="left">
           <el-icon
             class="collapse-btn"
+            data-testid="layout-btn-collapse"
             @click="isCollapse = !isCollapse"
           >
             <Fold v-if="!isCollapse" />
             <Expand v-else />
           </el-icon>
           
-          <el-breadcrumb separator="/">
+          <el-breadcrumb separator="/" data-testid="layout-breadcrumb">
             <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
             <el-breadcrumb-item v-if="currentRoute.meta?.title">
               {{ currentRoute.meta.title }}
@@ -67,7 +75,7 @@
         </div>
         
         <div class="right">
-          <el-dropdown @command="handleCommand">
+          <el-dropdown @command="handleCommand" data-testid="layout-user-dropdown">
             <span class="user-info">
               <el-avatar :size="32" icon="UserFilled" />
               <span class="username">{{ userStore.username }}</span>
@@ -75,9 +83,9 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="profile">个人信息</el-dropdown-item>
-                <el-dropdown-item command="password">修改密码</el-dropdown-item>
-                <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+                <el-dropdown-item command="profile" data-testid="dropdown-item-profile">个人信息</el-dropdown-item>
+                <el-dropdown-item command="password" data-testid="dropdown-item-password">修改密码</el-dropdown-item>
+                <el-dropdown-item divided command="logout" data-testid="dropdown-item-logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -85,7 +93,7 @@
       </el-header>
       
       <!-- 主内容区 -->
-      <el-main class="main">
+      <el-main class="main" data-testid="layout-main">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />

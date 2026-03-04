@@ -30,6 +30,7 @@ import customerRoutes from './routes/customer'
 import saleRoutes from './routes/sale'
 import financeRoutes from './routes/finance'
 import reportRoutes from './routes/report'
+import specRoutes from './routes/spec'
 
 app.use('/api/auth', authRoutes)
 app.use('/api/categories', categoryRoutes)
@@ -40,6 +41,7 @@ app.use('/api/customers', customerRoutes)
 app.use('/api/sales', saleRoutes)
 app.use('/api/finance', financeRoutes)
 app.use('/api/reports', reportRoutes)
+app.use('/api/specs', specRoutes)
 
 // 404 处理
 app.use((req, res) => {

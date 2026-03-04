@@ -1,6 +1,6 @@
 <template>
-  <div class="login-container">
-    <el-card class="login-card">
+  <div class="login-container" data-testid="login-page">
+    <el-card class="login-card" data-testid="login-card">
       <template #header>
         <div class="login-header">
           <h2>家电销售 ERP 系统</h2>
@@ -12,6 +12,7 @@
         :model="loginForm"
         :rules="rules"
         label-width="0"
+        data-testid="login-form"
         @submit.prevent="handleLogin"
       >
         <el-form-item prop="username">
@@ -20,6 +21,7 @@
             placeholder="用户名"
             prefix-icon="User"
             size="large"
+            data-testid="login-input-username"
           />
         </el-form-item>
         
@@ -31,6 +33,7 @@
             prefix-icon="Lock"
             size="large"
             show-password
+            data-testid="login-input-password"
             @keyup.enter="handleLogin"
           />
         </el-form-item>
@@ -41,6 +44,7 @@
             size="large"
             style="width: 100%"
             :loading="loading"
+            data-testid="login-btn-submit"
             @click="handleLogin"
           >
             登录

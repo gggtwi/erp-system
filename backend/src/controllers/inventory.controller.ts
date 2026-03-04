@@ -226,3 +226,22 @@ export const getInventoryWarning = async (
     next(error)
   }
 }
+
+// 获取库存统计
+export const getInventoryStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { warningThreshold = 10 } = req.query
+
+    const result = await inventoryService.getInventoryStats(
+      parseInt(warningThreshold as string) || 10
+    )
+
+    return success(res, result)
+  } catch (error) {
+    next(error)
+  }
+}

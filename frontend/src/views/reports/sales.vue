@@ -1,8 +1,8 @@
 <template>
-  <div class="sales-report-page">
-    <el-card>
+  <div class="sales-report-page" data-testid="sales-report-page">
+    <el-card data-testid="sales-report-card">
       <!-- 筛选条件 -->
-      <div class="filter-bar">
+      <div class="filter-bar" data-testid="sales-report-filter-bar">
         <el-date-picker
           v-model="dateRange"
           type="daterange"
@@ -11,39 +11,40 @@
           end-placeholder="结束日期"
           value-format="YYYY-MM-DD"
           style="width: 300px"
+          data-testid="reports-date-range"
         />
         
-        <el-button type="primary" @click="fetchData">查询</el-button>
-        <el-button @click="handleExport">导出</el-button>
+        <el-button type="primary" data-testid="reports-btn-query" @click="fetchData">查询</el-button>
+        <el-button data-testid="reports-btn-export" @click="handleExport">导出</el-button>
       </div>
       
       <!-- 统计卡片 -->
-      <el-row :gutter="20" style="margin: 20px 0">
+      <el-row :gutter="20" style="margin: 20px 0" data-testid="sales-report-stats-row">
         <el-col :span="6">
-          <el-card shadow="hover">
+          <el-card shadow="hover" data-testid="reports-stat-total">
             <el-statistic title="销售总额" :value="stats.totalAmount" :precision="2">
               <template #prefix>¥</template>
             </el-statistic>
           </el-card>
         </el-col>
         <el-col :span="6">
-          <el-card shadow="hover">
+          <el-card shadow="hover" data-testid="reports-stat-count">
             <el-statistic title="订单数量" :value="stats.orderCount">
               <template #suffix>笔</template>
             </el-statistic>
           </el-card>
         </el-col>
         <el-col :span="6">
-          <el-card shadow="hover">
+          <el-card shadow="hover" data-testid="reports-stat-avg">
             <el-statistic title="平均订单额" :value="stats.avgAmount" :precision="2">
               <template #prefix>¥</template>
             </el-statistic>
           </el-card>
         </el-col>
         <el-col :span="6">
-          <el-card shadow="hover">
-            <el-statistic title="应收账款" :value="stats.receivableAmount" :precision="2">
-              <template #prefix>¥</template>
+          <el-card shadow="hover" data-testid="reports-stat-products">
+            <el-statistic title="商品种类" :value="stats.productCount">
+              <template #suffix>种</template>
             </el-statistic>
           </el-card>
         </el-col>
@@ -52,14 +53,14 @@
       <el-divider />
       
       <!-- 图表区域 -->
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <h4>销售趋势</h4>
-          <div ref="trendChartRef" style="height: 300px"></div>
+      <el-row :gutter="20" data-testid="sales-report-charts-row">
+        <el-col :span="12" data-testid="sales-report-trend-col">
+          <h4 data-testid="sales-report-trend-title">销售趋势</h4>
+          <div ref="trendChartRef" style="height: 300px" data-testid="sales-report-trend-chart"></div>
         </el-col>
-        <el-col :span="12">
-          <h4>商品销售排行 TOP 10</h4>
-          <el-table :data="topProducts" border max-height="300">
+        <el-col :span="12" data-testid="sales-report-products-col">
+          <h4 data-testid="sales-report-products-title">商品销售排行 TOP 10</h4>
+          <el-table :data="topProducts" border max-height="300" data-testid="reports-product-rank-table">
             <el-table-column type="index" label="排名" width="60" />
             <el-table-column prop="name" label="商品名称" />
             <el-table-column label="销售数量" width="100">
@@ -79,8 +80,8 @@
       <el-divider />
       
       <!-- 客户销售排行 -->
-      <h4>客户销售排行 TOP 10</h4>
-      <el-table :data="topCustomers" border>
+      <h4 data-testid="sales-report-customers-title">客户销售排行 TOP 10</h4>
+      <el-table :data="topCustomers" border data-testid="reports-customer-rank-table">
         <el-table-column type="index" label="排名" width="60" />
         <el-table-column prop="name" label="客户名称" />
         <el-table-column label="订单数" width="100">
@@ -123,7 +124,7 @@ const stats = reactive({
   totalAmount: 0,
   orderCount: 0,
   avgAmount: 0,
-  receivableAmount: 0,
+  productCount: 0,
 })
 
 // 商品排行
@@ -150,7 +151,7 @@ async function fetchData() {
     stats.totalAmount = result.summary?.totalAmount || 0
     stats.orderCount = result.summary?.orderCount || 0
     stats.avgAmount = stats.orderCount > 0 ? stats.totalAmount / stats.orderCount : 0
-    stats.receivableAmount = result.summary?.receivableAmount || 0
+    stats.productCount = result.topProducts?.length || 0
     
     // 更新排行
     topProducts.value = result.topProducts || []
@@ -164,7 +165,7 @@ async function fetchData() {
     stats.totalAmount = 125680
     stats.orderCount = 156
     stats.avgAmount = 805.64
-    stats.receivableAmount = 12800
+    stats.productCount = 5
     
     topProducts.value = [
       { name: '美的空调 1.5匹', quantity: 45, amount: 134550 },

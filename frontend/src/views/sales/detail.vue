@@ -1,17 +1,25 @@
 <template>
-  <div class="sale-detail-page">
-    <el-card v-loading="loading">
+  <div class="sale-detail-page" data-testid="sales-detail-page">
+    <el-card v-loading="loading" data-testid="sales-detail-card">
       <template #header>
         <div class="card-header">
           <span>订单详情</span>
           <div>
-            <el-button @click="handleBack">返回</el-button>
-            <el-button type="primary" @click="handlePrint">打印</el-button>
+            <el-button data-testid="sales-detail-btn-back" @click="handleBack">返回</el-button>
+            <el-button
+              v-if="order?.debtAmount > 0"
+              type="success"
+              data-testid="sales-detail-btn-payment"
+              @click="showPaymentDialog"
+            >
+              收款
+            </el-button>
+            <el-button type="primary" data-testid="sales-detail-btn-print" @click="handlePrint">打印</el-button>
           </div>
         </div>
       </template>
       
-      <el-descriptions :column="3" border>
+      <el-descriptions :column="3" border data-testid="sales-detail-descriptions">
         <el-descriptions-item label="订单号">
           {{ order?.orderNo }}
         </el-descriptions-item>
@@ -37,7 +45,7 @@
       </el-descriptions>
       
       <h4 style="margin: 20px 0 10px">商品明细</h4>
-      <el-table :data="order?.items || []" border show-summary :summary-method="getSummaries">
+      <el-table :data="order?.items || []" border show-summary :summary-method="getSummaries" data-testid="sales-detail-items-table">
         <el-table-column type="index" label="序号" width="60" />
         <el-table-column label="商品编码" width="120">
           <template #default="{ row }">
@@ -72,7 +80,7 @@
       </el-table>
       
       <div class="amount-summary">
-        <el-descriptions :column="2" border>
+        <el-descriptions :column="2" border data-testid="sales-detail-amount-summary">
           <el-descriptions-item label="商品金额">
             ¥{{ Number(order?.totalAmount || 0).toFixed(2) }}
           </el-descriptions-item>
@@ -143,14 +151,53 @@
         </div>
       </div>
     </div>
+    
+    <!-- 收款弹窗 -->
+    <el-dialog v-model="paymentDialogVisible" title="收款" width="400px" data-testid="sales-detail-payment-dialog">
+      <el-form :model="paymentForm" label-width="80px" data-testid="sales-detail-payment-form">
+        <el-form-item label="欠款金额">
+          <span style="color: #f56c6c; font-weight: bold; font-size: 18px">
+            ¥{{ Number(order?.debtAmount || 0).toFixed(2) }}
+          </span>
+        </el-form-item>
+        <el-form-item label="收款金额">
+          <el-input-number
+            v-model="paymentForm.amount"
+            :min="0"
+            :max="Number(order?.debtAmount || 0)"
+            :precision="2"
+            style="width: 100%"
+            data-testid="payment-input-amount"
+          />
+        </el-form-item>
+        <el-form-item label="收款方式">
+          <el-select v-model="paymentForm.method" style="width: 100%" data-testid="payment-select-method">
+            <el-option label="现金" value="cash" />
+            <el-option label="微信" value="wechat" />
+            <el-option label="支付宝" value="alipay" />
+            <el-option label="银行卡" value="bank" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="paymentForm.remark" type="textarea" :rows="2" data-testid="payment-input-remark" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button data-testid="payment-btn-cancel" @click="paymentDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="paymentSubmitting" data-testid="payment-btn-submit" @click="handlePayment">
+          确认收款
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getSaleDetail } from '@/api/sale'
+import { createPayment } from '@/api/finance'
 import type { Sale } from '@/types'
 import dayjs from 'dayjs'
 
@@ -159,6 +206,15 @@ const router = useRouter()
 
 const loading = ref(false)
 const order = ref<Sale | null>(null)
+
+// 收款相关
+const paymentDialogVisible = ref(false)
+const paymentSubmitting = ref(false)
+const paymentForm = reactive({
+  amount: 0,
+  method: 'cash',
+  remark: '',
+})
 
 // 状态映射
 function getStatusType(status: string) {
@@ -274,6 +330,48 @@ function handlePrint() {
   printWindow.focus()
   printWindow.print()
   printWindow.close()
+}
+
+// 显示收款弹窗
+function showPaymentDialog() {
+  paymentForm.amount = Number(order.value?.debtAmount || 0)
+  paymentForm.method = 'cash'
+  paymentForm.remark = ''
+  paymentDialogVisible.value = true
+}
+
+// 确认收款
+async function handlePayment() {
+  if (!order.value?.receivable?.id) {
+    ElMessage.error('应收账款信息不存在')
+    return
+  }
+  
+  if (paymentForm.amount <= 0) {
+    ElMessage.warning('请输入收款金额')
+    return
+  }
+  
+  paymentSubmitting.value = true
+  try {
+    await createPayment({
+      receivableId: order.value.receivable.id,
+      customerId: order.value.customerId,
+      amount: paymentForm.amount,
+      method: paymentForm.method,
+      remark: paymentForm.remark,
+    })
+    
+    ElMessage.success('收款成功')
+    paymentDialogVisible.value = false
+    
+    // 刷新订单详情
+    await fetchData()
+  } catch (error: any) {
+    ElMessage.error(error.message || '收款失败')
+  } finally {
+    paymentSubmitting.value = false
+  }
 }
 
 onMounted(() => {

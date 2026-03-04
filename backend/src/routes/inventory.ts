@@ -6,6 +6,9 @@ const router = Router()
 
 // ==================== 库存查询 ====================
 
+// 获取库存统计
+router.get('/stats', authMiddleware, inventoryController.getInventoryStats)
+
 // 获取库存列表（所有登录用户）
 router.get('/', authMiddleware, inventoryController.getInventoryList)
 

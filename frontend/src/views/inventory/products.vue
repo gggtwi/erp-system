@@ -1,13 +1,14 @@
 <template>
-  <div class="products-page">
-    <el-card>
+  <div class="products-page" data-testid="products-page">
+    <el-card data-testid="products-card">
       <!-- 搜索栏 -->
-      <div class="search-bar">
+      <div class="search-bar" data-testid="products-search-bar">
         <el-input
           v-model="searchForm.keyword"
           placeholder="商品编码/名称"
           clearable
           style="width: 200px"
+          data-testid="products-input-keyword"
           @keyup.enter="handleSearch"
         />
         
@@ -18,16 +19,17 @@
           placeholder="分类"
           clearable
           style="width: 200px"
+          data-testid="products-cascader-category"
         />
         
-        <el-select v-model="searchForm.active" placeholder="状态" clearable style="width: 120px">
+        <el-select v-model="searchForm.active" placeholder="状态" clearable style="width: 120px" data-testid="products-select-status">
           <el-option label="启用" :value="true" />
           <el-option label="禁用" :value="false" />
         </el-select>
         
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-        <el-button @click="handleReset">重置</el-button>
-        <el-button type="primary" @click="handleAdd">新增商品</el-button>
+        <el-button type="primary" data-testid="products-btn-search" @click="handleSearch">搜索</el-button>
+        <el-button data-testid="products-btn-reset" @click="handleReset">重置</el-button>
+        <el-button type="primary" data-testid="products-btn-add" @click="handleAdd">新增商品</el-button>
       </div>
       
       <!-- 表格 -->
@@ -37,6 +39,7 @@
         stripe
         border
         style="margin-top: 20px"
+        data-testid="products-table"
       >
         <el-table-column prop="code" label="商品编码" width="120" />
         <el-table-column prop="name" label="商品名称" min-width="150" />
@@ -72,9 +75,9 @@
         </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="primary" @click="handleDetail(row)">详情</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button link type="primary" data-testid="products-btn-edit" @click="handleEdit(row)">编辑</el-button>
+            <el-button link type="primary" data-testid="products-btn-detail" @click="handleDetail(row)">详情</el-button>
+            <el-button link type="danger" data-testid="products-btn-delete" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -87,6 +90,7 @@
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
         style="margin-top: 20px; justify-content: flex-end"
+        data-testid="products-pagination"
         @size-change="fetchData"
         @current-change="fetchData"
       />
@@ -97,6 +101,7 @@
       v-model="dialogVisible"
       :title="dialogTitle"
       width="600px"
+      data-testid="products-dialog"
       @closed="handleDialogClosed"
     >
       <el-form
@@ -104,13 +109,14 @@
         :model="formData"
         :rules="rules"
         label-width="100px"
+        data-testid="products-form"
       >
         <el-form-item label="商品编码" prop="code">
-          <el-input v-model="formData.code" placeholder="请输入商品编码" />
+          <el-input v-model="formData.code" placeholder="请输入商品编码" data-testid="product-form-input-code" />
         </el-form-item>
         
         <el-form-item label="商品名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入商品名称" />
+          <el-input v-model="formData.name" placeholder="请输入商品名称" data-testid="product-form-input-name" />
         </el-form-item>
         
         <el-form-item label="分类" prop="categoryId">
@@ -120,25 +126,26 @@
             :props="{ value: 'id', label: 'name', checkStrictly: true, emitPath: false }"
             placeholder="请选择分类"
             style="width: 100%"
+            data-testid="product-form-cascader-category"
           />
         </el-form-item>
         
         <el-form-item label="单位" prop="unit">
-          <el-input v-model="formData.unit" placeholder="台、套、件等" />
+          <el-input v-model="formData.unit" placeholder="台、套、件等" data-testid="product-form-input-unit" />
         </el-form-item>
         
         <el-form-item label="保修月数" prop="warranty">
-          <el-input-number v-model="formData.warranty" :min="0" :max="120" />
+          <el-input-number v-model="formData.warranty" :min="0" :max="120" data-testid="product-form-input-warranty" />
         </el-form-item>
         
         <el-form-item label="状态" prop="active">
-          <el-switch v-model="formData.active" />
+          <el-switch v-model="formData.active" data-testid="product-form-switch-active" />
         </el-form-item>
       </el-form>
       
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
+        <el-button data-testid="product-dialog-btn-cancel" @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitLoading" data-testid="product-dialog-btn-submit" @click="handleSubmit">
           确定
         </el-button>
       </template>
@@ -148,9 +155,10 @@
     <el-dialog
       v-model="detailVisible"
       title="商品详情"
-      width="800px"
+      width="900px"
+      data-testid="product-detail-dialog"
     >
-      <el-descriptions :column="2" border>
+      <el-descriptions :column="2" border data-testid="product-detail-descriptions">
         <el-descriptions-item label="商品编码">
           {{ currentProduct?.code }}
         </el-descriptions-item>
@@ -173,26 +181,132 @@
         </el-descriptions-item>
       </el-descriptions>
       
-      <h4 style="margin: 20px 0 10px">SKU 列表</h4>
-      <el-table :data="currentProduct?.skus || []" border>
-        <el-table-column prop="code" label="SKU编码" width="120" />
-        <el-table-column prop="name" label="规格名称" />
-        <el-table-column label="销售价" width="100">
-          <template #default="{ row }">
-            ¥{{ Number(row.price).toFixed(2) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="成本价" width="100">
-          <template #default="{ row }">
-            ¥{{ Number(row.costPrice).toFixed(2) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="库存" width="80">
-          <template #default="{ row }">
-            {{ row.inventory?.quantity || 0 }}
-          </template>
-        </el-table-column>
-      </el-table>
+      <!-- SKU 管理 -->
+      <div class="sku-section">
+        <div class="sku-header">
+          <h4>SKU 管理</h4>
+          <el-button type="primary" size="small" data-testid="product-detail-btn-add-sku" @click="handleAddSKU">
+            新增 SKU
+          </el-button>
+        </div>
+        
+        <el-table :data="currentProduct?.skus || []" border data-testid="product-detail-sku-table">
+          <el-table-column prop="code" label="SKU编码" width="140" />
+          <el-table-column prop="name" label="规格名称" min-width="150">
+            <template #default="{ row }">
+              {{ row.name }}
+              <div v-if="row.specs" class="spec-tags">
+                <el-tag v-for="(value, key) in parseSpecs(row.specs)" :key="key" size="small" style="margin-right: 4px">
+                  {{ key }}: {{ value }}
+                </el-tag>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="销售价" width="100">
+            <template #default="{ row }">
+              ¥{{ Number(row.price).toFixed(2) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="成本价" width="100">
+            <template #default="{ row }">
+              ¥{{ Number(row.costPrice).toFixed(2) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="库存" width="80">
+            <template #default="{ row }">
+              {{ row.inventory?.quantity || 0 }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="140" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" size="small" data-testid="sku-btn-edit" @click="handleEditSKU(row)">编辑</el-button>
+              <el-button link type="danger" size="small" data-testid="sku-btn-delete" @click="handleDeleteSKU(row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </el-dialog>
+    
+    <!-- SKU 新增/编辑对话框 -->
+    <el-dialog
+      v-model="skuDialogVisible"
+      :title="skuDialogTitle"
+      width="600px"
+      data-testid="sku-dialog"
+      @closed="handleSKUDialogClosed"
+    >
+      <el-form
+        ref="skuFormRef"
+        :model="skuFormData"
+        :rules="skuRules"
+        label-width="100px"
+        data-testid="sku-form"
+      >
+        <el-form-item label="SKU编码" prop="code">
+          <div style="display: flex; gap: 8px;">
+            <el-input v-model="skuFormData.code" placeholder="请输入SKU编码" style="flex: 1" data-testid="sku-form-input-code" />
+            <el-button data-testid="sku-form-btn-generate" @click="generateSKUPrefix">自动生成</el-button>
+          </div>
+        </el-form-item>
+        
+        <el-form-item label="规格名称" prop="name">
+          <el-input v-model="skuFormData.name" placeholder="规格名称（如：红色-XL）" data-testid="sku-form-input-name" />
+        </el-form-item>
+        
+        <!-- 规格选择 -->
+        <el-form-item label="规格">
+          <div class="spec-list">
+            <div v-for="(spec, index) in skuFormData.specList" :key="index" class="spec-item">
+              <el-select
+                v-model="spec.specName"
+                placeholder="选择规格类型"
+                style="width: 120px"
+                :data-testid="`sku-form-select-spec-name-${index}`"
+                @change="updateSKUName"
+              >
+                <el-option
+                  v-for="type in activeSpecTypes"
+                  :key="type.id"
+                  :label="type.name"
+                  :value="type.name"
+                />
+              </el-select>
+              <el-input
+                v-model="spec.specValue"
+                placeholder="规格值"
+                style="width: 120px"
+                :data-testid="`sku-form-input-spec-value-${index}`"
+                @input="updateSKUName"
+              />
+              <el-button type="danger" link :data-testid="`sku-form-btn-remove-spec-${index}`" @click="removeSpec(index)">
+                删除
+              </el-button>
+            </div>
+            <el-button type="primary" link data-testid="sku-form-btn-add-spec" @click="addSpec">
+              + 添加规格
+            </el-button>
+          </div>
+        </el-form-item>
+        
+        <el-form-item label="销售价" prop="price">
+          <el-input-number v-model="skuFormData.price" :min="0" :precision="2" style="width: 200px" data-testid="sku-form-input-price" />
+        </el-form-item>
+        
+        <el-form-item label="成本价" prop="costPrice">
+          <el-input-number v-model="skuFormData.costPrice" :min="0" :precision="2" style="width: 200px" data-testid="sku-form-input-cost-price" />
+        </el-form-item>
+        
+        <el-form-item label="条码">
+          <el-input v-model="skuFormData.barcode" placeholder="条形码（可选）" data-testid="sku-form-input-barcode" />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <el-button data-testid="sku-dialog-btn-cancel" @click="skuDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="skuSubmitLoading" data-testid="sku-dialog-btn-submit" @click="handleSKUSubmit">
+          确定
+        </el-button>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -202,7 +316,9 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getProducts, getCategories, createProduct, updateProduct, deleteProduct, getProduct } from '@/api/product'
-import type { Product, Category } from '@/types'
+import { createSKU, updateSKU, deleteSKU } from '@/api/sku'
+import { getActiveSpecTypes, type SpecType } from '@/api/spec'
+import type { Product, Category, SKU } from '@/types'
 
 // 搜索表单
 const searchForm = reactive({
@@ -228,7 +344,7 @@ const categoryTree = computed(() => {
   return buildTree(categories.value)
 })
 
-function buildTree(list: Category[], parentId?: number): any[] {
+function buildTree(list: Category[], parentId: number | null = null): any[] {
   return list
     .filter(item => item.parentId === parentId)
     .map(item => ({
@@ -264,6 +380,38 @@ const rules: FormRules = {
 const detailVisible = ref(false)
 const currentProduct = ref<Product | null>(null)
 
+// 规格类型
+const activeSpecTypes = ref<SpecType[]>([])
+
+// SKU 对话框
+const skuDialogVisible = ref(false)
+const skuDialogTitle = ref('新增 SKU')
+const skuFormRef = ref<FormInstance>()
+const skuSubmitLoading = ref(false)
+const skuEditId = ref<number | null>(null)
+
+// 规格项接口
+interface SpecItem {
+  specName: string
+  specValue: string
+}
+
+const skuFormData = reactive({
+  code: '',
+  name: '',
+  specList: [] as SpecItem[],
+  price: 0,
+  costPrice: 0,
+  barcode: '',
+})
+
+const skuRules: FormRules = {
+  code: [{ required: true, message: '请输入SKU编码', trigger: 'blur' }],
+  name: [{ required: true, message: '请输入规格名称', trigger: 'blur' }],
+  price: [{ required: true, message: '请输入销售价', trigger: 'blur' }],
+  costPrice: [{ required: true, message: '请输入成本价', trigger: 'blur' }],
+}
+
 // 获取数据
 async function fetchData() {
   loading.value = true
@@ -290,10 +438,28 @@ async function fetchCategories() {
   }
 }
 
+// 获取规格类型
+async function fetchSpecTypes() {
+  try {
+    activeSpecTypes.value = await getActiveSpecTypes()
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 // 计算商品总库存
 function getTotalStock(product: Product): number {
   if (!product.skus) return 0
   return product.skus.reduce((sum, sku) => sum + (sku.inventory?.quantity || 0), 0)
+}
+
+// 解析规格 JSON
+function parseSpecs(specs: string): Record<string, string> {
+  try {
+    return JSON.parse(specs)
+  } catch {
+    return {}
+  }
 }
 
 // 搜索
@@ -395,9 +561,166 @@ async function handleSubmit() {
   })
 }
 
+// =============== SKU 管理 ===============
+
+// 自动生成 SKU 编码前缀
+function generateSKUPrefix() {
+  if (currentProduct.value) {
+    const timestamp = Date.now().toString().slice(-6)
+    skuFormData.code = `${currentProduct.value.code}-${timestamp}`
+  }
+}
+
+// 更新 SKU 名称
+function updateSKUName() {
+  const productName = currentProduct.value?.name || ''
+  const specValues = skuFormData.specList
+    .filter(s => s.specName && s.specValue)
+    .map(s => s.specValue)
+    .join('-')
+  
+  if (specValues) {
+    skuFormData.name = `${productName}-${specValues}`
+  } else {
+    skuFormData.name = productName
+  }
+}
+
+// 添加规格
+function addSpec() {
+  skuFormData.specList.push({ specName: '', specValue: '' })
+}
+
+// 移除规格
+function removeSpec(index: number) {
+  skuFormData.specList.splice(index, 1)
+  updateSKUName()
+}
+
+// 新增 SKU
+function handleAddSKU() {
+  skuDialogTitle.value = '新增 SKU'
+  skuEditId.value = null
+  
+  // 初始化表单
+  skuFormData.code = ''
+  skuFormData.name = currentProduct.value?.name || ''
+  skuFormData.specList = []
+  skuFormData.price = 0
+  skuFormData.costPrice = 0
+  skuFormData.barcode = ''
+  
+  // 自动生成编码前缀
+  generateSKUPrefix()
+  
+  skuDialogVisible.value = true
+}
+
+// 编辑 SKU
+function handleEditSKU(row: SKU) {
+  skuDialogTitle.value = '编辑 SKU'
+  skuEditId.value = row.id
+  
+  // 解析规格
+  const specs = parseSpecs(row.specs || '{}')
+  const specList: SpecItem[] = Object.entries(specs).map(([name, value]) => ({
+    specName: name,
+    specValue: value as string,
+  }))
+  
+  Object.assign(skuFormData, {
+    code: row.code,
+    name: row.name,
+    specList,
+    price: row.price,
+    costPrice: row.costPrice,
+    barcode: row.barcode || '',
+  })
+  
+  skuDialogVisible.value = true
+}
+
+// 删除 SKU
+async function handleDeleteSKU(row: SKU) {
+  try {
+    await ElMessageBox.confirm('确定要删除该 SKU 吗？', '提示', {
+      type: 'warning',
+    })
+    await deleteSKU(row.id)
+    ElMessage.success('删除成功')
+    
+    // 刷新商品详情
+    if (currentProduct.value) {
+      currentProduct.value = await getProduct(currentProduct.value.id)
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+// SKU 对话框关闭
+function handleSKUDialogClosed() {
+  skuFormRef.value?.resetFields()
+  skuFormData.specList = []
+}
+
+// SKU 提交
+async function handleSKUSubmit() {
+  if (!skuFormRef.value || !currentProduct.value) return
+  
+  await skuFormRef.value.validate(async (valid) => {
+    if (!valid) return
+    
+    skuSubmitLoading.value = true
+    try {
+      // 构建规格对象
+      const specs: Record<string, string> = {}
+      for (const spec of skuFormData.specList) {
+        if (spec.specName && spec.specValue) {
+          specs[spec.specName] = spec.specValue
+        }
+      }
+      
+      const data = {
+        productId: currentProduct.value!.id,
+        code: skuFormData.code,
+        name: skuFormData.name,
+        specs: Object.keys(specs).length > 0 ? JSON.stringify(specs) : undefined,
+        price: skuFormData.price,
+        costPrice: skuFormData.costPrice,
+        barcode: skuFormData.barcode || undefined,
+      }
+      
+      if (skuEditId.value) {
+        await updateSKU(skuEditId.value, {
+          name: data.name,
+          specs: data.specs,
+          price: data.price,
+          costPrice: data.costPrice,
+          barcode: data.barcode,
+        })
+        ElMessage.success('更新成功')
+      } else {
+        await createSKU(data)
+        ElMessage.success('创建成功')
+      }
+      
+      skuDialogVisible.value = false
+      
+      // 刷新商品详情
+      currentProduct.value = await getProduct(currentProduct.value!.id)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      skuSubmitLoading.value = false
+    }
+  })
+}
+
 onMounted(() => {
   fetchData()
   fetchCategories()
+  fetchSpecTypes()
 })
 </script>
 
@@ -407,6 +730,34 @@ onMounted(() => {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+  }
+  
+  .sku-section {
+    margin-top: 20px;
+    
+    .sku-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      
+      h4 {
+        margin: 0;
+      }
+    }
+    
+    .spec-tags {
+      margin-top: 4px;
+    }
+  }
+  
+  .spec-list {
+    .spec-item {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
   }
 }
 </style>

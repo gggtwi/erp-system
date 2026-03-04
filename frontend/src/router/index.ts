@@ -32,6 +32,12 @@ const router = createRouter({
           meta: { title: '库存概览' },
         },
         {
+          path: 'inventory/specs',
+          name: 'Specs',
+          component: () => import('@/views/spec/index.vue'),
+          meta: { title: '规格管理' },
+        },
+        {
           path: 'sales/create',
           name: 'CreateSale',
           component: () => import('@/views/sales/create.vue'),
@@ -54,6 +60,18 @@ const router = createRouter({
           name: 'Receivables',
           component: () => import('@/views/finance/receivables.vue'),
           meta: { title: '应收账款' },
+        },
+        {
+          path: 'customers',
+          name: 'Customers',
+          component: () => import('@/views/customer/index.vue'),
+          meta: { title: '客户管理' },
+        },
+        {
+          path: 'customers/:id',
+          name: 'CustomerDetail',
+          component: () => import('@/views/customer/detail.vue'),
+          meta: { title: '客户详情' },
         },
         {
           path: 'reports/sales',

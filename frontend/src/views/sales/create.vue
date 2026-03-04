@@ -1,9 +1,9 @@
 <template>
-  <div class="create-sale-page">
+  <div class="create-sale-page" data-testid="sales-create-page">
     <el-row :gutter="20">
       <!-- 左侧：商品选择 -->
       <el-col :span="14">
-        <el-card>
+        <el-card data-testid="sales-create-product-card">
           <template #header>
             <div class="card-header">
               <span>选择商品</span>
@@ -12,10 +12,11 @@
                 placeholder="搜索商品（编码/名称）"
                 clearable
                 style="width: 300px"
+                data-testid="sales-create-input-search"
                 @keyup.enter="searchProducts"
               >
                 <template #append>
-                  <el-button icon="Search" @click="searchProducts" />
+                  <el-button icon="Search" data-testid="sales-create-btn-search" @click="searchProducts" />
                 </template>
               </el-input>
             </div>
@@ -25,6 +26,7 @@
             v-loading="loading"
             :data="productList"
             max-height="500"
+            data-testid="sales-create-product-table"
             @row-dblclick="handleAddToCart"
           >
             <el-table-column prop="code" label="编码" width="120" />
@@ -37,6 +39,7 @@
                   placeholder="选择规格"
                   size="small"
                   style="width: 100%"
+                  :data-testid="`sales-create-select-sku-${row.id}`"
                 >
                   <el-option
                     v-for="sku in row.skus"
@@ -76,6 +79,7 @@
                   type="primary"
                   size="small"
                   :disabled="!row.selectedSkuId && (!row.skus || row.skus.length === 0)"
+                  :data-testid="`sales-create-btn-add-${row.id}`"
                   @click="handleAddToCart(row)"
                 >
                   添加
@@ -91,6 +95,7 @@
             :page-sizes="[10, 20, 50]"
             layout="total, prev, pager, next"
             style="margin-top: 15px; justify-content: flex-end"
+            data-testid="sales-create-product-pagination"
             @current-change="fetchProducts"
           />
         </el-card>
@@ -98,7 +103,7 @@
       
       <!-- 右侧：购物车 -->
       <el-col :span="10">
-        <el-card>
+        <el-card data-testid="sales-create-cart-card">
           <template #header>
             <div class="card-header">
               <span>购物车 ({{ cartStore.itemCount }} 件)</span>
@@ -106,6 +111,7 @@
                 type="danger"
                 size="small"
                 :disabled="cartStore.items.length === 0"
+                data-testid="sales-create-btn-clear-cart"
                 @click="handleClearCart"
               >
                 清空
@@ -115,25 +121,34 @@
           
           <!-- 客户选择 -->
           <el-form-item label="客户" style="margin-bottom: 15px">
-            <el-select
-              v-model="selectedCustomerId"
-              placeholder="选择客户"
-              filterable
-              clearable
-              style="width: 100%"
-            >
-              <el-option
-                v-for="customer in customerList"
-                :key="customer.id"
-                :label="customer.name"
-                :value="customer.id"
+            <div style="display: flex; gap: 10px">
+              <el-select
+                v-model="selectedCustomerId"
+                placeholder="选择客户"
+                filterable
+                clearable
+                style="width: 250px"
+                data-testid="sales-create-select-customer"
               >
-                <span style="float: left">{{ customer.name }}</span>
-                <span style="float: right; color: #8492a6; font-size: 13px">
-                  {{ customer.phone }}
-                </span>
-              </el-option>
-            </el-select>
+                <el-option
+                  v-for="customer in customerList"
+                  :key="customer.id"
+                  :label="customer.name"
+                  :value="customer.id"
+                >
+                  <span style="float: left">{{ customer.name }}</span>
+                  <span style="float: right; color: #8492a6; font-size: 13px">
+                    {{ customer.phone }}
+                  </span>
+                </el-option>
+              </el-select>
+              <el-button type="success" data-testid="sales-create-btn-new-member" @click="showCreateMemberDialog">
+                新建会员
+              </el-button>
+              <el-button type="warning" data-testid="sales-create-btn-temp-customer" @click="createTempCustomer">
+                临时客户
+              </el-button>
+            </div>
           </el-form-item>
           
           <!-- 购物车列表 -->
@@ -142,6 +157,7 @@
             max-height="300"
             show-summary
             :summary-method="getSummaries"
+            data-testid="sales-create-cart-table"
           >
             <el-table-column label="商品" min-width="150">
               <template #default="{ row }">
@@ -162,6 +178,7 @@
                   size="small"
                   controls-position="right"
                   style="width: 80px"
+                  :data-testid="`cart-input-qty-${row.sku.id}`"
                 />
               </template>
             </el-table-column>
@@ -174,6 +191,7 @@
                   size="small"
                   controls-position="right"
                   style="width: 90px"
+                  :data-testid="`cart-input-price-${row.sku.id}`"
                 />
               </template>
             </el-table-column>
@@ -188,6 +206,7 @@
                   type="danger"
                   link
                   size="small"
+                  :data-testid="`cart-btn-remove-${row.sku.id}`"
                   @click="cartStore.removeItem(row.sku.id)"
                 >
                   删除
@@ -206,16 +225,7 @@
                   :precision="2"
                   controls-position="right"
                   style="width: 150px"
-                />
-              </el-form-item>
-              
-              <el-form-item label="已付金额">
-                <el-input-number
-                  v-model="paidAmount"
-                  :min="0"
-                  :precision="2"
-                  controls-position="right"
-                  style="width: 150px"
+                  data-testid="sales-create-input-discount"
                 />
               </el-form-item>
               
@@ -231,12 +241,8 @@
                   <span class="discount">-¥{{ discountAmount.toFixed(2) }}</span>
                 </div>
                 <div>
-                  <span>应付金额：</span>
+                  <span>未付金额：</span>
                   <span class="amount total">¥{{ actualAmount.toFixed(2) }}</span>
-                </div>
-                <div v-if="debtAmount > 0">
-                  <span>欠款金额：</span>
-                  <span class="debt">¥{{ debtAmount.toFixed(2) }}</span>
                 </div>
               </div>
             </el-form>
@@ -247,6 +253,7 @@
               style="width: 100%; margin-top: 20px"
               :loading="submitting"
               :disabled="cartStore.items.length === 0 || !selectedCustomerId"
+              data-testid="sales-create-btn-submit"
               @click="handleSubmit"
             >
               提交订单
@@ -255,17 +262,46 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 新建会员客户弹窗 -->
+    <el-dialog
+      v-model="memberDialogVisible"
+      title="新建会员客户"
+      width="450px"
+      destroy-on-close
+      data-testid="sales-create-member-dialog"
+    >
+      <el-form ref="memberFormRef" :model="memberFormData" :rules="memberFormRules" label-width="80px" data-testid="sales-create-member-form">
+        <el-form-item label="客户名称" prop="name">
+          <el-input v-model="memberFormData.name" placeholder="请输入客户名称" data-testid="member-form-input-name" />
+        </el-form-item>
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="memberFormData.phone" placeholder="请输入手机号" data-testid="member-form-input-phone" />
+        </el-form-item>
+        <el-form-item label="地址" prop="address">
+          <el-input v-model="memberFormData.address" placeholder="请输入地址（选填）" data-testid="member-form-input-address" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button data-testid="member-dialog-btn-cancel" @click="memberDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="memberSubmitting" data-testid="member-dialog-btn-submit" @click="handleCreateMember">
+          创建
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getProducts } from '@/api/product'
 import { getCustomers, createSale } from '@/api/sale'
+import { createCustomer, generateTempCustomerCode } from '@/api/customer'
 import { useCartStore } from '@/stores/cart'
 import type { Product, Customer, SKU } from '@/types'
+import type { FormInstance, FormRules } from 'element-plus'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -286,16 +322,31 @@ const selectedCustomerId = ref<number>()
 
 // 结算
 const discountAmount = ref(0)
-const paidAmount = ref(0)
 const submitting = ref(false)
+
+// 新建会员客户
+const memberDialogVisible = ref(false)
+const memberSubmitting = ref(false)
+const memberFormRef = ref<FormInstance>()
+const memberFormData = reactive({
+  name: '',
+  phone: '',
+  address: '',
+})
+const memberFormRules: FormRules = {
+  name: [
+    { required: true, message: '请输入客户名称', trigger: 'blur' },
+    { min: 2, max: 50, message: '名称长度 2-50 个字符', trigger: 'blur' },
+  ],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
+  ],
+}
 
 // 计算金额
 const actualAmount = computed(() => {
   return Math.max(0, cartStore.totalAmount - discountAmount.value)
-})
-
-const debtAmount = computed(() => {
-  return Math.max(0, actualAmount.value - paidAmount.value)
 })
 
 // 获取商品列表
@@ -328,7 +379,9 @@ function searchProducts() {
 // 获取客户列表
 async function fetchCustomers() {
   try {
-    customerList.value = await getCustomers()
+    const result = await getCustomers()
+    // 兼容两种返回格式
+    customerList.value = Array.isArray(result) ? result : (result as any).list || []
   } catch (error) {
     console.error(error)
   }
@@ -374,7 +427,6 @@ function handleClearCart() {
   }).then(() => {
     cartStore.clearCart()
     discountAmount.value = 0
-    paidAmount.value = 0
     selectedCustomerId.value = undefined
   }).catch(() => {})
 }
@@ -396,6 +448,63 @@ function getSummaries(param: any) {
     }
   })
   return sums
+}
+
+// 显示新建会员客户弹窗
+function showCreateMemberDialog() {
+  memberFormData.name = ''
+  memberFormData.phone = ''
+  memberFormData.address = ''
+  memberDialogVisible.value = true
+}
+
+// 创建会员客户
+async function handleCreateMember() {
+  const valid = await memberFormRef.value?.validate().catch(() => false)
+  if (!valid) return
+
+  memberSubmitting.value = true
+  try {
+    // 生成会员编码：M + 时间戳后6位
+    const code = `M${Date.now().toString().slice(-6)}`
+    const customer = await createCustomer({
+      code,
+      name: memberFormData.name,
+      phone: memberFormData.phone,
+      address: memberFormData.address || undefined,
+    })
+    
+    ElMessage.success('会员客户创建成功')
+    memberDialogVisible.value = false
+    
+    // 刷新客户列表并选中新建的客户
+    await fetchCustomers()
+    selectedCustomerId.value = customer.id
+  } catch (error: any) {
+    ElMessage.error(error.message || '创建失败')
+  } finally {
+    memberSubmitting.value = false
+  }
+}
+
+// 创建临时客户
+async function createTempCustomer() {
+  try {
+    // 生成临时客户编码：TMP + 时间戳后6位 + 随机数
+    const code = generateTempCustomerCode()
+    const customer = await createCustomer({
+      code,
+      name: `临时客户-${code}`,
+    })
+    
+    ElMessage.success(`临时客户 ${code} 创建成功`)
+    
+    // 刷新客户列表并选中新建的客户
+    await fetchCustomers()
+    selectedCustomerId.value = customer.id
+  } catch (error: any) {
+    ElMessage.error(error.message || '创建失败')
+  }
 }
 
 // 提交订单
@@ -421,13 +530,11 @@ async function handleSubmit() {
         serialNos: item.serialNos,
       })),
       discountAmount: discountAmount.value,
-      paidAmount: paidAmount.value,
     })
     
     ElMessage.success('订单创建成功')
     cartStore.clearCart()
     discountAmount.value = 0
-    paidAmount.value = 0
     selectedCustomerId.value = undefined
     
     // 跳转到订单详情

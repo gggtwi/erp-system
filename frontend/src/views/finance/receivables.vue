@@ -1,47 +1,56 @@
 <template>
-  <div class="receivables-page">
-    <el-card>
+  <div class="receivables-page" data-testid="receivables-page">
+    <el-card data-testid="receivables-card">
       <!-- 搜索栏 -->
-      <div class="search-bar">
+      <div class="search-bar" data-testid="receivables-search-bar">
         <el-input
           v-model="searchForm.keyword"
           placeholder="客户名称"
           clearable
           style="width: 200px"
+          data-testid="receivables-input-keyword"
           @keyup.enter="handleSearch"
         />
         
-        <el-select v-model="searchForm.status" placeholder="状态" clearable style="width: 150px">
+        <el-select v-model="searchForm.status" placeholder="状态" clearable style="width: 150px" data-testid="receivables-select-status">
           <el-option label="未付款" value="unpaid" />
           <el-option label="部分付款" value="partial" />
           <el-option label="已付款" value="paid" />
         </el-select>
         
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-        <el-button @click="handleReset">重置</el-button>
+        <el-button type="primary" data-testid="receivables-btn-search" @click="handleSearch">搜索</el-button>
+        <el-button data-testid="receivables-btn-reset" @click="handleReset">重置</el-button>
       </div>
       
       <!-- 统计卡片 -->
-      <el-row :gutter="20" style="margin: 20px 0">
+      <el-row :gutter="20" style="margin: 20px 0" data-testid="receivables-stats-row">
         <el-col :span="6">
-          <el-statistic title="应收总额" :value="stats.totalAmount" :precision="2">
-            <template #prefix>¥</template>
-          </el-statistic>
+          <div data-testid="receivables-stat-total">
+            <el-statistic title="应收总额" :value="stats.totalAmount" :precision="2">
+              <template #prefix>¥</template>
+            </el-statistic>
+          </div>
         </el-col>
         <el-col :span="6">
-          <el-statistic title="已收款" :value="stats.paidAmount" :precision="2">
-            <template #prefix>¥</template>
-          </el-statistic>
+          <div data-testid="receivables-stat-paid">
+            <el-statistic title="已收款" :value="stats.paidAmount" :precision="2">
+              <template #prefix>¥</template>
+            </el-statistic>
+          </div>
         </el-col>
         <el-col :span="6">
-          <el-statistic title="欠款金额" :value="stats.debtAmount" :precision="2">
-            <template #prefix>¥</template>
-          </el-statistic>
+          <div data-testid="receivables-stat-debt">
+            <el-statistic title="欠款金额" :value="stats.debtAmount" :precision="2">
+              <template #prefix>¥</template>
+            </el-statistic>
+          </div>
         </el-col>
         <el-col :span="6">
-          <el-statistic title="欠款客户" :value="stats.customerCount">
-            <template #suffix>位</template>
-          </el-statistic>
+          <div data-testid="receivables-stat-customers">
+            <el-statistic title="欠款客户" :value="stats.customerCount">
+              <template #suffix>位</template>
+            </el-statistic>
+          </div>
         </el-col>
       </el-row>
       
@@ -51,6 +60,7 @@
         :data="tableData"
         stripe
         border
+        data-testid="receivables-table"
       >
         <el-table-column prop="orderNo" label="订单号" width="150" />
         <el-table-column label="客户" width="150">
@@ -95,11 +105,12 @@
               v-if="row.status !== 'paid'"
               link
               type="primary"
+              data-testid="receivables-btn-payment"
               @click="handlePayment(row)"
             >
               收款
             </el-button>
-            <el-button link type="primary" @click="handleDetail(row)">
+            <el-button link type="primary" data-testid="receivables-btn-detail" @click="handleDetail(row)">
               详情
             </el-button>
           </template>
@@ -114,6 +125,7 @@
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
         style="margin-top: 20px; justify-content: flex-end"
+        data-testid="receivables-pagination"
         @size-change="fetchData"
         @current-change="fetchData"
       />
@@ -124,8 +136,9 @@
       v-model="paymentDialogVisible"
       title="收款核销"
       width="400px"
+      data-testid="receivables-payment-dialog"
     >
-      <el-form :model="paymentForm" label-width="80px">
+      <el-form :model="paymentForm" label-width="80px" data-testid="receivables-payment-form">
         <el-form-item label="客户">
           {{ paymentForm.customerName }}
         </el-form-item>
@@ -147,10 +160,11 @@
             :max="paymentForm.remainingAmount"
             :precision="2"
             style="width: 100%"
+            data-testid="payment-input-amount"
           />
         </el-form-item>
         <el-form-item label="收款方式">
-          <el-select v-model="paymentForm.method" style="width: 100%">
+          <el-select v-model="paymentForm.method" style="width: 100%" data-testid="payment-select-method">
             <el-option label="现金" value="cash" />
             <el-option label="微信" value="wechat" />
             <el-option label="支付宝" value="alipay" />
@@ -163,13 +177,14 @@
             type="textarea"
             :rows="2"
             placeholder="备注信息"
+            data-testid="payment-input-remark"
           />
         </el-form-item>
       </el-form>
       
       <template #footer>
-        <el-button @click="paymentDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="paying" @click="handlePaymentSubmit">
+        <el-button data-testid="payment-btn-cancel" @click="paymentDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="paying" data-testid="payment-btn-submit" @click="handlePaymentSubmit">
           确认收款
         </el-button>
       </template>

@@ -17,35 +17,22 @@ async function main() {
       phone: '13800138000',
     },
   })
+  console.log('Created admin user:', admin.username)
 
-  // 创建分类
-  const categories = await Promise.all([
-    prisma.category.upsert({
-      where: { id: 1 },
-      update: {},
-      create: { name: '冰箱', sort: 1 },
-    }),
-    prisma.category.upsert({
-      where: { id: 2 },
-      update: {},
-      create: { name: '洗衣机', sort: 2 },
-    }),
-    prisma.category.upsert({
-      where: { id: 3 },
-      update: {},
-      create: { name: '空调', sort: 3 },
-    }),
-    prisma.category.upsert({
-      where: { id: 4 },
-      update: {},
-      create: { name: '电视', sort: 4 },
-    }),
-    prisma.category.upsert({
-      where: { id: 5 },
-      update: {},
-      create: { name: '热水器', sort: 5 },
-    }),
-  ])
+  // 创建分类 - 先检查是否存在
+  const existingCats = await prisma.category.findMany()
+  let cat1 = existingCats.find(c => c.name === '冰箱')
+  let cat2 = existingCats.find(c => c.name === '洗衣机')
+  let cat3 = existingCats.find(c => c.name === '空调')
+  let cat4 = existingCats.find(c => c.name === '电视')
+  let cat5 = existingCats.find(c => c.name === '热水器')
+
+  if (!cat1) cat1 = await prisma.category.create({ data: { name: '冰箱', sort: 1 } })
+  if (!cat2) cat2 = await prisma.category.create({ data: { name: '洗衣机', sort: 2 } })
+  if (!cat3) cat3 = await prisma.category.create({ data: { name: '空调', sort: 3 } })
+  if (!cat4) cat4 = await prisma.category.create({ data: { name: '电视', sort: 4 } })
+  if (!cat5) cat5 = await prisma.category.create({ data: { name: '热水器', sort: 5 } })
+  console.log('Created/checked categories')
 
   // 创建演示商品
   const product1 = await prisma.product.upsert({
@@ -54,25 +41,25 @@ async function main() {
     create: {
       code: 'BX001',
       name: '美的冰箱 BCD-500',
-      categoryId: 1,
+      categoryId: cat1.id,
       brand: '美的',
       unit: '台',
       warranty: 36,
     },
   })
-
   const product2 = await prisma.product.upsert({
     where: { code: 'XYJ001' },
     update: {},
     create: {
       code: 'XYJ001',
       name: '海尔洗衣机 EG100',
-      categoryId: 2,
+      categoryId: cat2.id,
       brand: '海尔',
       unit: '台',
       warranty: 24,
     },
   })
+  console.log('Created products')
 
   // 创建 SKU
   const sku1 = await prisma.sKU.upsert({
@@ -88,7 +75,6 @@ async function main() {
       barcode: '6901234567890',
     },
   })
-
   const sku2 = await prisma.sKU.upsert({
     where: { code: 'XYJ001-001' },
     update: {},
@@ -102,19 +88,37 @@ async function main() {
       barcode: '6901234567891',
     },
   })
+  console.log('Created SKUs')
 
   // 创建库存
   await prisma.inventory.upsert({
     where: { skuId: sku1.id },
-    update: {},
+    update: { quantity: 10 },
     create: { skuId: sku1.id, quantity: 10 },
   })
-
   await prisma.inventory.upsert({
     where: { skuId: sku2.id },
-    update: {},
+    update: { quantity: 15 },
     create: { skuId: sku2.id, quantity: 15 },
   })
+  console.log('Created inventory')
+
+  // 创建规格类型
+  const existingSpecTypes = await prisma.specType.findMany()
+  if (existingSpecTypes.length === 0) {
+    await prisma.specType.createMany({
+      data: [
+        { name: '颜色', sort: 1 },
+        { name: '尺码', sort: 2 },
+        { name: '容量', sort: 3 },
+        { name: '功率', sort: 4 },
+        { name: '型号', sort: 5 },
+      ],
+    })
+    console.log('Created spec types: 颜色, 尺码, 容量, 功率, 型号')
+  } else {
+    console.log('Spec types already exist')
+  }
 
   // 创建演示客户
   await prisma.customer.upsert({
@@ -128,9 +132,10 @@ async function main() {
       creditLimit: 10000,
     },
   })
+  console.log('Created customer')
 
-  console.log('Seed data created successfully!')
-  console.log('Admin user: admin / admin123')
+  console.log('\n✅ Seed data created successfully!')
+  console.log('📝 Admin user: admin / admin123')
 }
 
 main()

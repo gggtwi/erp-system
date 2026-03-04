@@ -73,12 +73,25 @@ model Product {
   @@map("products")
 }
 
+// ==================== 规格管理 ====================
+
+model SpecType {
+  id        Int      @id @default(autoincrement())
+  name      String   // 规格名称（如"颜色"、"型号"、"尺码"）
+  sort      Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("spec_types")
+}
+
 model SKU {
   id        Int      @id @default(autoincrement())
   productId Int
   code      String   @unique
   name      String
-  specs     String?  // JSON 字符串存储规格属性
+  specs     String?  // JSON: {"颜色":"红色","尺码":"XL"} 规格类型名:规格值
   price     Float
   costPrice Float
   barcode   String?

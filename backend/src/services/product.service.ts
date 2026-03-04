@@ -147,6 +147,17 @@ export const createProduct = async (data: CreateProductDTO) => {
     },
   })
 
+  // 自动创建默认 SKU
+  await prisma.sKU.create({
+    data: {
+      productId: product.id,
+      code: `${data.code}-001`,
+      name: '默认规格',
+      price: 0,
+      costPrice: 0,
+    },
+  })
+
   return product
 }
 

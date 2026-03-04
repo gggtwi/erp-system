@@ -1,0 +1,497 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img "Logo" [ref=e6]
+      - generic [ref=e7]: ERP 系统
+    - menubar [ref=e8]:
+      - menuitem "库存管理" [ref=e9]:
+        - generic [ref=e10] [cursor=pointer]:
+          - img [ref=e12]
+          - generic [ref=e16]: 库存管理
+          - img [ref=e18]
+      - menuitem "销售管理" [ref=e20]:
+        - generic [ref=e21] [cursor=pointer]:
+          - img [ref=e23]
+          - generic [ref=e25]: 销售管理
+          - img [ref=e27]
+      - menuitem "客户管理" [ref=e29] [cursor=pointer]:
+        - img [ref=e31]
+        - generic [ref=e33]: 客户管理
+      - menuitem "应收账款" [ref=e34] [cursor=pointer]:
+        - img [ref=e36]
+        - generic [ref=e40]: 应收账款
+      - menuitem "销售报表" [ref=e41] [cursor=pointer]:
+        - img [ref=e43]
+        - generic [ref=e45]: 销售报表
+  - generic [ref=e46]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - img [ref=e50] [cursor=pointer]
+        - navigation "面包屑" [ref=e52]:
+          - generic [ref=e53]:
+            - link "首页" [ref=e54]
+            - text: /
+          - link "应收账款" [ref=e56]
+      - button "系统管理员" [ref=e59] [cursor=pointer]:
+        - img [ref=e62]
+        - generic [ref=e64]: 系统管理员
+        - img [ref=e66]
+    - main [ref=e68]:
+      - generic [ref=e71]:
+        - generic [ref=e72]:
+          - textbox "客户名称" [ref=e75]
+          - generic [ref=e77] [cursor=pointer]:
+            - generic:
+              - combobox [ref=e79]
+              - generic [ref=e80]: 状态
+            - img [ref=e83]
+          - button "搜索" [ref=e85] [cursor=pointer]:
+            - generic [ref=e86]: 搜索
+          - button "重置" [ref=e87] [cursor=pointer]:
+            - generic [ref=e88]: 重置
+        - generic [ref=e89]:
+          - generic [ref=e92]:
+            - generic [ref=e93]: 应收总额
+            - generic [ref=e94]:
+              - generic [ref=e95]: ¥
+              - text: 71,089.00
+          - generic [ref=e98]:
+            - generic [ref=e99]: 已收款
+            - generic [ref=e100]:
+              - generic [ref=e101]: ¥
+              - text: 26,263.50
+          - generic [ref=e104]:
+            - generic [ref=e105]: 欠款金额
+            - generic [ref=e106]:
+              - generic [ref=e107]: ¥
+              - text: 44,825.50
+          - generic [ref=e110]:
+            - generic [ref=e111]: 欠款客户
+            - generic [ref=e112]:
+              - text: "4"
+              - generic [ref=e113]: 位
+        - generic [ref=e115]:
+          - table [ref=e117]:
+            - rowgroup [ref=e127]:
+              - row "订单号 客户 应收金额 已收金额 剩余金额 状态 创建时间 操作" [ref=e128]:
+                - columnheader "订单号" [ref=e129]:
+                  - generic [ref=e130]: 订单号
+                - columnheader "客户" [ref=e131]:
+                  - generic [ref=e132]: 客户
+                - columnheader "应收金额" [ref=e133]:
+                  - generic [ref=e134]: 应收金额
+                - columnheader "已收金额" [ref=e135]:
+                  - generic [ref=e136]: 已收金额
+                - columnheader "剩余金额" [ref=e137]:
+                  - generic [ref=e138]: 剩余金额
+                - columnheader "状态" [ref=e139]:
+                  - generic [ref=e140]: 状态
+                - columnheader "创建时间" [ref=e141]:
+                  - generic [ref=e142]: 创建时间
+                - columnheader "操作" [ref=e143]:
+                  - generic [ref=e144]: 操作
+          - table [ref=e149]:
+            - rowgroup [ref=e159]:
+              - row "临时客户-TMP21831825 ¥100.00 ¥100.00 ¥0.00 已付款 2026-03-04 22:43:29 详情" [ref=e160]:
+                - cell [ref=e161]
+                - cell "临时客户-TMP21831825" [ref=e162]:
+                  - generic [ref=e163]: 临时客户-TMP21831825
+                - cell "¥100.00" [ref=e164]:
+                  - generic [ref=e165]: ¥100.00
+                - cell "¥100.00" [ref=e166]:
+                  - generic [ref=e167]: ¥100.00
+                - cell "¥0.00" [ref=e168]:
+                  - generic [ref=e169]: ¥0.00
+                - cell "已付款" [ref=e170]:
+                  - generic [ref=e173]: 已付款
+                - cell "2026-03-04 22:43:29" [ref=e174]:
+                  - generic [ref=e175]: 2026-03-04 22:43:29
+                - cell "详情" [ref=e176]:
+                  - button "详情" [ref=e178] [cursor=pointer]:
+                    - generic [ref=e179]: 详情
+              - row "临时客户-TMP03573063 ¥100.00 ¥100.00 ¥0.00 已付款 2026-03-04 22:33:40 详情" [ref=e180]:
+                - cell [ref=e181]
+                - cell "临时客户-TMP03573063" [ref=e182]:
+                  - generic [ref=e183]: 临时客户-TMP03573063
+                - cell "¥100.00" [ref=e184]:
+                  - generic [ref=e185]: ¥100.00
+                - cell "¥100.00" [ref=e186]:
+                  - generic [ref=e187]: ¥100.00
+                - cell "¥0.00" [ref=e188]:
+                  - generic [ref=e189]: ¥0.00
+                - cell "已付款" [ref=e190]:
+                  - generic [ref=e193]: 已付款
+                - cell "2026-03-04 22:33:40" [ref=e194]:
+                  - generic [ref=e195]: 2026-03-04 22:33:40
+                - cell "详情" [ref=e196]:
+                  - button "详情" [ref=e198] [cursor=pointer]:
+                    - generic [ref=e199]: 详情
+              - row "临时客户-TMP03573063 ¥3999.00 ¥3999.00 ¥0.00 已付款 2026-03-04 22:26:11 详情" [ref=e200]:
+                - cell [ref=e201]
+                - cell "临时客户-TMP03573063" [ref=e202]:
+                  - generic [ref=e203]: 临时客户-TMP03573063
+                - cell "¥3999.00" [ref=e204]:
+                  - generic [ref=e205]: ¥3999.00
+                - cell "¥3999.00" [ref=e206]:
+                  - generic [ref=e207]: ¥3999.00
+                - cell "¥0.00" [ref=e208]:
+                  - generic [ref=e209]: ¥0.00
+                - cell "已付款" [ref=e210]:
+                  - generic [ref=e213]: 已付款
+                - cell "2026-03-04 22:26:11" [ref=e214]:
+                  - generic [ref=e215]: 2026-03-04 22:26:11
+                - cell "详情" [ref=e216]:
+                  - button "详情" [ref=e218] [cursor=pointer]:
+                    - generic [ref=e219]: 详情
+              - row "临时客户-TMP03573063 ¥3999.00 ¥3999.00 ¥0.00 已付款 2026-03-04 22:25:59 详情" [ref=e220]:
+                - cell [ref=e221]
+                - cell "临时客户-TMP03573063" [ref=e222]:
+                  - generic [ref=e223]: 临时客户-TMP03573063
+                - cell "¥3999.00" [ref=e224]:
+                  - generic [ref=e225]: ¥3999.00
+                - cell "¥3999.00" [ref=e226]:
+                  - generic [ref=e227]: ¥3999.00
+                - cell "¥0.00" [ref=e228]:
+                  - generic [ref=e229]: ¥0.00
+                - cell "已付款" [ref=e230]:
+                  - generic [ref=e233]: 已付款
+                - cell "2026-03-04 22:25:59" [ref=e234]:
+                  - generic [ref=e235]: 2026-03-04 22:25:59
+                - cell "详情" [ref=e236]:
+                  - button "详情" [ref=e238] [cursor=pointer]:
+                    - generic [ref=e239]: 详情
+              - row "临时客户-TMP03573063 ¥3999.00 ¥3999.00 ¥0.00 已付款 2026-03-04 22:25:41 详情" [ref=e240]:
+                - cell [ref=e241]
+                - cell "临时客户-TMP03573063" [ref=e242]:
+                  - generic [ref=e243]: 临时客户-TMP03573063
+                - cell "¥3999.00" [ref=e244]:
+                  - generic [ref=e245]: ¥3999.00
+                - cell "¥3999.00" [ref=e246]:
+                  - generic [ref=e247]: ¥3999.00
+                - cell "¥0.00" [ref=e248]:
+                  - generic [ref=e249]: ¥0.00
+                - cell "已付款" [ref=e250]:
+                  - generic [ref=e253]: 已付款
+                - cell "2026-03-04 22:25:41" [ref=e254]:
+                  - generic [ref=e255]: 2026-03-04 22:25:41
+                - cell "详情" [ref=e256]:
+                  - button "详情" [ref=e258] [cursor=pointer]:
+                    - generic [ref=e259]: 详情
+              - row "临时客户-TMP03573063 ¥3979.00 ¥3979.00 ¥0.00 已付款 2026-03-04 22:25:38 详情" [ref=e260]:
+                - cell [ref=e261]
+                - cell "临时客户-TMP03573063" [ref=e262]:
+                  - generic [ref=e263]: 临时客户-TMP03573063
+                - cell "¥3979.00" [ref=e264]:
+                  - generic [ref=e265]: ¥3979.00
+                - cell "¥3979.00" [ref=e266]:
+                  - generic [ref=e267]: ¥3979.00
+                - cell "¥0.00" [ref=e268]:
+                  - generic [ref=e269]: ¥0.00
+                - cell "已付款" [ref=e270]:
+                  - generic [ref=e273]: 已付款
+                - cell "2026-03-04 22:25:38" [ref=e274]:
+                  - generic [ref=e275]: 2026-03-04 22:25:38
+                - cell "详情" [ref=e276]:
+                  - button "详情" [ref=e278] [cursor=pointer]:
+                    - generic [ref=e279]: 详情
+              - row "临时客户-TMP03573063 ¥7988.00 ¥7988.00 ¥0.00 已付款 2026-03-04 22:25:33 详情" [ref=e280]:
+                - cell [ref=e281]
+                - cell "临时客户-TMP03573063" [ref=e282]:
+                  - generic [ref=e283]: 临时客户-TMP03573063
+                - cell "¥7988.00" [ref=e284]:
+                  - generic [ref=e285]: ¥7988.00
+                - cell "¥7988.00" [ref=e286]:
+                  - generic [ref=e287]: ¥7988.00
+                - cell "¥0.00" [ref=e288]:
+                  - generic [ref=e289]: ¥0.00
+                - cell "已付款" [ref=e290]:
+                  - generic [ref=e293]: 已付款
+                - cell "2026-03-04 22:25:33" [ref=e294]:
+                  - generic [ref=e295]: 2026-03-04 22:25:33
+                - cell "详情" [ref=e296]:
+                  - button "详情" [ref=e298] [cursor=pointer]:
+                    - generic [ref=e299]: 详情
+              - row "临时客户-TMP03573063 ¥3999.00 ¥2099.50 ¥1899.50 部分付款 2026-03-04 22:25:30 收款 详情" [ref=e300]:
+                - cell [ref=e301]
+                - cell "临时客户-TMP03573063" [ref=e302]:
+                  - generic [ref=e303]: 临时客户-TMP03573063
+                - cell "¥3999.00" [ref=e304]:
+                  - generic [ref=e305]: ¥3999.00
+                - cell "¥2099.50" [ref=e306]:
+                  - generic [ref=e307]: ¥2099.50
+                - cell "¥1899.50" [ref=e308]:
+                  - generic [ref=e309]: ¥1899.50
+                - cell "部分付款" [ref=e310]:
+                  - generic [ref=e313]: 部分付款
+                - cell "2026-03-04 22:25:30" [ref=e314]:
+                  - generic [ref=e315]: 2026-03-04 22:25:30
+                - cell "收款 详情" [ref=e316]:
+                  - generic [ref=e317]:
+                    - button "收款" [ref=e318] [cursor=pointer]:
+                      - generic [ref=e319]: 收款
+                    - button "详情" [ref=e320] [cursor=pointer]:
+                      - generic [ref=e321]: 详情
+              - row "临时客户-TMP03573063 ¥3999.00 ¥0.00 ¥3999.00 未付款 2026-03-04 22:23:59 收款 详情" [ref=e322]:
+                - cell [ref=e323]
+                - cell "临时客户-TMP03573063" [ref=e324]:
+                  - generic [ref=e325]: 临时客户-TMP03573063
+                - cell "¥3999.00" [ref=e326]:
+                  - generic [ref=e327]: ¥3999.00
+                - cell "¥0.00" [ref=e328]:
+                  - generic [ref=e329]: ¥0.00
+                - cell "¥3999.00" [ref=e330]:
+                  - generic [ref=e331]: ¥3999.00
+                - cell "未付款" [ref=e332]:
+                  - generic [ref=e335]: 未付款
+                - cell "2026-03-04 22:23:59" [ref=e336]:
+                  - generic [ref=e337]: 2026-03-04 22:23:59
+                - cell "收款 详情" [ref=e338]:
+                  - generic [ref=e339]:
+                    - button "收款" [ref=e340] [cursor=pointer]:
+                      - generic [ref=e341]: 收款
+                    - button "详情" [ref=e342] [cursor=pointer]:
+                      - generic [ref=e343]: 详情
+              - row "临时客户-TMP03573063 ¥2999.00 ¥0.00 ¥2999.00 未付款 2026-03-04 22:23:47 收款 详情" [ref=e344]:
+                - cell [ref=e345]
+                - cell "临时客户-TMP03573063" [ref=e346]:
+                  - generic [ref=e347]: 临时客户-TMP03573063
+                - cell "¥2999.00" [ref=e348]:
+                  - generic [ref=e349]: ¥2999.00
+                - cell "¥0.00" [ref=e350]:
+                  - generic [ref=e351]: ¥0.00
+                - cell "¥2999.00" [ref=e352]:
+                  - generic [ref=e353]: ¥2999.00
+                - cell "未付款" [ref=e354]:
+                  - generic [ref=e357]: 未付款
+                - cell "2026-03-04 22:23:47" [ref=e358]:
+                  - generic [ref=e359]: 2026-03-04 22:23:47
+                - cell "收款 详情" [ref=e360]:
+                  - generic [ref=e361]:
+                    - button "收款" [ref=e362] [cursor=pointer]:
+                      - generic [ref=e363]: 收款
+                    - button "详情" [ref=e364] [cursor=pointer]:
+                      - generic [ref=e365]: 详情
+              - row "临时客户-TMP03573063 ¥2999.00 ¥0.00 ¥2999.00 未付款 2026-03-04 22:23:29 收款 详情" [ref=e366]:
+                - cell [ref=e367]
+                - cell "临时客户-TMP03573063" [ref=e368]:
+                  - generic [ref=e369]: 临时客户-TMP03573063
+                - cell "¥2999.00" [ref=e370]:
+                  - generic [ref=e371]: ¥2999.00
+                - cell "¥0.00" [ref=e372]:
+                  - generic [ref=e373]: ¥0.00
+                - cell "¥2999.00" [ref=e374]:
+                  - generic [ref=e375]: ¥2999.00
+                - cell "未付款" [ref=e376]:
+                  - generic [ref=e379]: 未付款
+                - cell "2026-03-04 22:23:29" [ref=e380]:
+                  - generic [ref=e381]: 2026-03-04 22:23:29
+                - cell "收款 详情" [ref=e382]:
+                  - generic [ref=e383]:
+                    - button "收款" [ref=e384] [cursor=pointer]:
+                      - generic [ref=e385]: 收款
+                    - button "详情" [ref=e386] [cursor=pointer]:
+                      - generic [ref=e387]: 详情
+              - row "临时客户-TMP03573063 ¥2979.00 ¥0.00 ¥2979.00 未付款 2026-03-04 22:23:24 收款 详情" [ref=e388]:
+                - cell [ref=e389]
+                - cell "临时客户-TMP03573063" [ref=e390]:
+                  - generic [ref=e391]: 临时客户-TMP03573063
+                - cell "¥2979.00" [ref=e392]:
+                  - generic [ref=e393]: ¥2979.00
+                - cell "¥0.00" [ref=e394]:
+                  - generic [ref=e395]: ¥0.00
+                - cell "¥2979.00" [ref=e396]:
+                  - generic [ref=e397]: ¥2979.00
+                - cell "未付款" [ref=e398]:
+                  - generic [ref=e401]: 未付款
+                - cell "2026-03-04 22:23:24" [ref=e402]:
+                  - generic [ref=e403]: 2026-03-04 22:23:24
+                - cell "收款 详情" [ref=e404]:
+                  - generic [ref=e405]:
+                    - button "收款" [ref=e406] [cursor=pointer]:
+                      - generic [ref=e407]: 收款
+                    - button "详情" [ref=e408] [cursor=pointer]:
+                      - generic [ref=e409]: 详情
+              - row "临时客户-TMP03573063 ¥5988.00 ¥0.00 ¥5988.00 未付款 2026-03-04 22:23:21 收款 详情" [ref=e410]:
+                - cell [ref=e411]
+                - cell "临时客户-TMP03573063" [ref=e412]:
+                  - generic [ref=e413]: 临时客户-TMP03573063
+                - cell "¥5988.00" [ref=e414]:
+                  - generic [ref=e415]: ¥5988.00
+                - cell "¥0.00" [ref=e416]:
+                  - generic [ref=e417]: ¥0.00
+                - cell "¥5988.00" [ref=e418]:
+                  - generic [ref=e419]: ¥5988.00
+                - cell "未付款" [ref=e420]:
+                  - generic [ref=e423]: 未付款
+                - cell "2026-03-04 22:23:21" [ref=e424]:
+                  - generic [ref=e425]: 2026-03-04 22:23:21
+                - cell "收款 详情" [ref=e426]:
+                  - generic [ref=e427]:
+                    - button "收款" [ref=e428] [cursor=pointer]:
+                      - generic [ref=e429]: 收款
+                    - button "详情" [ref=e430] [cursor=pointer]:
+                      - generic [ref=e431]: 详情
+              - row "临时客户-TMP03573063 ¥2999.00 ¥0.00 ¥2999.00 未付款 2026-03-04 22:23:16 收款 详情" [ref=e432]:
+                - cell [ref=e433]
+                - cell "临时客户-TMP03573063" [ref=e434]:
+                  - generic [ref=e435]: 临时客户-TMP03573063
+                - cell "¥2999.00" [ref=e436]:
+                  - generic [ref=e437]: ¥2999.00
+                - cell "¥0.00" [ref=e438]:
+                  - generic [ref=e439]: ¥0.00
+                - cell "¥2999.00" [ref=e440]:
+                  - generic [ref=e441]: ¥2999.00
+                - cell "未付款" [ref=e442]:
+                  - generic [ref=e445]: 未付款
+                - cell "2026-03-04 22:23:16" [ref=e446]:
+                  - generic [ref=e447]: 2026-03-04 22:23:16
+                - cell "收款 详情" [ref=e448]:
+                  - generic [ref=e449]:
+                    - button "收款" [ref=e450] [cursor=pointer]:
+                      - generic [ref=e451]: 收款
+                    - button "详情" [ref=e452] [cursor=pointer]:
+                      - generic [ref=e453]: 详情
+              - row "临时客户-TMP03573063 ¥2999.00 ¥0.00 ¥2999.00 未付款 2026-03-04 22:21:05 收款 详情" [ref=e454]:
+                - cell [ref=e455]
+                - cell "临时客户-TMP03573063" [ref=e456]:
+                  - generic [ref=e457]: 临时客户-TMP03573063
+                - cell "¥2999.00" [ref=e458]:
+                  - generic [ref=e459]: ¥2999.00
+                - cell "¥0.00" [ref=e460]:
+                  - generic [ref=e461]: ¥0.00
+                - cell "¥2999.00" [ref=e462]:
+                  - generic [ref=e463]: ¥2999.00
+                - cell "未付款" [ref=e464]:
+                  - generic [ref=e467]: 未付款
+                - cell "2026-03-04 22:21:05" [ref=e468]:
+                  - generic [ref=e469]: 2026-03-04 22:21:05
+                - cell "收款 详情" [ref=e470]:
+                  - generic [ref=e471]:
+                    - button "收款" [ref=e472] [cursor=pointer]:
+                      - generic [ref=e473]: 收款
+                    - button "详情" [ref=e474] [cursor=pointer]:
+                      - generic [ref=e475]: 详情
+              - row "临时客户-TMP03573063 ¥2999.00 ¥0.00 ¥2999.00 未付款 2026-03-04 22:20:52 收款 详情" [ref=e476]:
+                - cell [ref=e477]
+                - cell "临时客户-TMP03573063" [ref=e478]:
+                  - generic [ref=e479]: 临时客户-TMP03573063
+                - cell "¥2999.00" [ref=e480]:
+                  - generic [ref=e481]: ¥2999.00
+                - cell "¥0.00" [ref=e482]:
+                  - generic [ref=e483]: ¥0.00
+                - cell "¥2999.00" [ref=e484]:
+                  - generic [ref=e485]: ¥2999.00
+                - cell "未付款" [ref=e486]:
+                  - generic [ref=e489]: 未付款
+                - cell "2026-03-04 22:20:52" [ref=e490]:
+                  - generic [ref=e491]: 2026-03-04 22:20:52
+                - cell "收款 详情" [ref=e492]:
+                  - generic [ref=e493]:
+                    - button "收款" [ref=e494] [cursor=pointer]:
+                      - generic [ref=e495]: 收款
+                    - button "详情" [ref=e496] [cursor=pointer]:
+                      - generic [ref=e497]: 详情
+              - row "刘磊-已修改 ¥2999.00 ¥0.00 ¥2999.00 未付款 2026-03-04 22:20:29 收款 详情" [ref=e498]:
+                - cell [ref=e499]
+                - cell "刘磊-已修改" [ref=e500]:
+                  - generic [ref=e501]: 刘磊-已修改
+                - cell "¥2999.00" [ref=e502]:
+                  - generic [ref=e503]: ¥2999.00
+                - cell "¥0.00" [ref=e504]:
+                  - generic [ref=e505]: ¥0.00
+                - cell "¥2999.00" [ref=e506]:
+                  - generic [ref=e507]: ¥2999.00
+                - cell "未付款" [ref=e508]:
+                  - generic [ref=e511]: 未付款
+                - cell "2026-03-04 22:20:29" [ref=e512]:
+                  - generic [ref=e513]: 2026-03-04 22:20:29
+                - cell "收款 详情" [ref=e514]:
+                  - generic [ref=e515]:
+                    - button "收款" [ref=e516] [cursor=pointer]:
+                      - generic [ref=e517]: 收款
+                    - button "详情" [ref=e518] [cursor=pointer]:
+                      - generic [ref=e519]: 详情
+              - row "刘磊-已修改 ¥2979.00 ¥0.00 ¥2979.00 未付款 2026-03-04 22:20:25 收款 详情" [ref=e520]:
+                - cell [ref=e521]
+                - cell "刘磊-已修改" [ref=e522]:
+                  - generic [ref=e523]: 刘磊-已修改
+                - cell "¥2979.00" [ref=e524]:
+                  - generic [ref=e525]: ¥2979.00
+                - cell "¥0.00" [ref=e526]:
+                  - generic [ref=e527]: ¥0.00
+                - cell "¥2979.00" [ref=e528]:
+                  - generic [ref=e529]: ¥2979.00
+                - cell "未付款" [ref=e530]:
+                  - generic [ref=e533]: 未付款
+                - cell "2026-03-04 22:20:25" [ref=e534]:
+                  - generic [ref=e535]: 2026-03-04 22:20:25
+                - cell "收款 详情" [ref=e536]:
+                  - generic [ref=e537]:
+                    - button "收款" [ref=e538] [cursor=pointer]:
+                      - generic [ref=e539]: 收款
+                    - button "详情" [ref=e540] [cursor=pointer]:
+                      - generic [ref=e541]: 详情
+              - row "临时客户-TMP97736287 ¥5988.00 ¥0.00 ¥5988.00 未付款 2026-03-04 22:20:20 收款 详情" [ref=e542]:
+                - cell [ref=e543]
+                - cell "临时客户-TMP97736287" [ref=e544]:
+                  - generic [ref=e545]: 临时客户-TMP97736287
+                - cell "¥5988.00" [ref=e546]:
+                  - generic [ref=e547]: ¥5988.00
+                - cell "¥0.00" [ref=e548]:
+                  - generic [ref=e549]: ¥0.00
+                - cell "¥5988.00" [ref=e550]:
+                  - generic [ref=e551]: ¥5988.00
+                - cell "未付款" [ref=e552]:
+                  - generic [ref=e555]: 未付款
+                - cell "2026-03-04 22:20:20" [ref=e556]:
+                  - generic [ref=e557]: 2026-03-04 22:20:20
+                - cell "收款 详情" [ref=e558]:
+                  - generic [ref=e559]:
+                    - button "收款" [ref=e560] [cursor=pointer]:
+                      - generic [ref=e561]: 收款
+                    - button "详情" [ref=e562] [cursor=pointer]:
+                      - generic [ref=e563]: 详情
+              - row "临时客户-TMP97736287 ¥2999.00 ¥0.00 ¥2999.00 未付款 2026-03-04 22:20:16 收款 详情" [ref=e564]:
+                - cell [ref=e565]
+                - cell "临时客户-TMP97736287" [ref=e566]:
+                  - generic [ref=e567]: 临时客户-TMP97736287
+                - cell "¥2999.00" [ref=e568]:
+                  - generic [ref=e569]: ¥2999.00
+                - cell "¥0.00" [ref=e570]:
+                  - generic [ref=e571]: ¥0.00
+                - cell "¥2999.00" [ref=e572]:
+                  - generic [ref=e573]: ¥2999.00
+                - cell "未付款" [ref=e574]:
+                  - generic [ref=e577]: 未付款
+                - cell "2026-03-04 22:20:16" [ref=e578]:
+                  - generic [ref=e579]: 2026-03-04 22:20:16
+                - cell "收款 详情" [ref=e580]:
+                  - generic [ref=e581]:
+                    - button "收款" [ref=e582] [cursor=pointer]:
+                      - generic [ref=e583]: 收款
+                    - button "详情" [ref=e584] [cursor=pointer]:
+                      - generic [ref=e585]: 详情
+        - generic [ref=e587]:
+          - generic [ref=e588]: 共 21 条
+          - generic [ref=e591] [cursor=pointer]:
+            - generic:
+              - combobox [ref=e593]
+              - generic [ref=e594]: 20条/页
+            - img [ref=e597]
+          - button "上一页" [disabled] [ref=e599]:
+            - generic:
+              - img
+          - list [ref=e600]:
+            - listitem "第 1 页" [ref=e601]: "1"
+            - listitem "第 2 页" [ref=e602] [cursor=pointer]: "2"
+          - button "下一页" [ref=e603] [cursor=pointer]:
+            - generic:
+              - img
+          - generic [ref=e604]:
+            - generic [ref=e605]: 前往
+            - spinbutton "页" [ref=e608]: "1"
+            - generic [ref=e609]: 页
+```

@@ -8,6 +8,18 @@ export interface InventoryQuery {
   lowStock?: boolean
 }
 
+export interface InventoryStats {
+  totalProducts: number
+  totalSkus: number
+  warningCount: number
+  totalValue: number
+}
+
+// 库存统计
+export function getInventoryStats() {
+  return request.get<InventoryStats>('/inventory/stats')
+}
+
 // 库存列表
 export function getInventoryList(params: InventoryQuery) {
   return request.get<PaginateResponse<Inventory & { sku: SKU }>>('/inventory', { params })
@@ -19,7 +31,7 @@ export function getInventoryDetail(skuId: number) {
 }
 
 // 库存调整
-export function adjustInventory(data: { skuId: number; quantity: number; remark?: string }) {
+export function adjustInventory(data: { skuId: number; quantity: number; type: string; remark?: string }) {
   return request.post('/inventory/adjust', data)
 }
 

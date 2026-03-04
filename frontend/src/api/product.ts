@@ -16,7 +16,7 @@ export function getProducts(params: ProductQuery) {
 
 // 商品详情
 export function getProduct(id: number) {
-  return request.get<Product>(`/products/${id}`)
+  return request.get<Product>(`/products/id/${id}`)
 }
 
 // 创建商品

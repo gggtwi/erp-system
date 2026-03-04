@@ -217,13 +217,13 @@ export const createSale = async (data: CreateSaleDTO, operatorId: number) => {
   const paidAmount = data.paidAmount || 0
   const debtAmount = Math.max(0, finalAmount - paidAmount)
 
-  // 3. 校验授信额度
-  if (debtAmount > 0) {
-    const availableCredit = customer.creditLimit - customer.balance
-    if (debtAmount > availableCredit) {
-      throw new AppError(400, `超出授信额度，可用额度: ${availableCredit.toFixed(2)}`)
-    }
-  }
+  // 3. 校验授信额度（已取消）
+  // if (debtAmount > 0) {
+  //   const availableCredit = customer.creditLimit - customer.balance
+  //   if (debtAmount > availableCredit) {
+  //     throw new AppError(400, `超出授信额度，可用额度: ${availableCredit.toFixed(2)}`)
+  //   }
+  // }
 
   // 4. 校验库存和序列号
   for (const item of itemsWithAmount) {

@@ -1,17 +1,18 @@
 <template>
-  <div class="sales-page">
-    <el-card>
+  <div class="sales-page" data-testid="sales-orders-page">
+    <el-card data-testid="sales-orders-card">
       <!-- 搜索栏 -->
-      <div class="search-bar">
+      <div class="search-bar" data-testid="sales-orders-search-bar">
         <el-input
           v-model="searchForm.keyword"
           placeholder="订单号/客户名称"
           clearable
           style="width: 200px"
+          data-testid="sales-orders-input-keyword"
           @keyup.enter="handleSearch"
         />
         
-        <el-select v-model="searchForm.status" placeholder="订单状态" clearable style="width: 150px">
+        <el-select v-model="searchForm.status" placeholder="订单状态" clearable style="width: 150px" data-testid="sales-orders-select-status">
           <el-option label="草稿" value="draft" />
           <el-option label="已确认" value="confirmed" />
           <el-option label="已完成" value="completed" />
@@ -26,10 +27,11 @@
           end-placeholder="结束日期"
           value-format="YYYY-MM-DD"
           style="width: 260px"
+          data-testid="sales-orders-date-range"
         />
         
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-        <el-button @click="handleReset">重置</el-button>
+        <el-button type="primary" data-testid="sales-orders-btn-search" @click="handleSearch">搜索</el-button>
+        <el-button data-testid="sales-orders-btn-reset" @click="handleReset">重置</el-button>
       </div>
       
       <!-- 表格 -->
@@ -39,6 +41,7 @@
         stripe
         border
         style="margin-top: 20px"
+        data-testid="sales-orders-table"
       >
         <el-table-column prop="orderNo" label="订单号" width="150" />
         <el-table-column label="客户" width="150">
@@ -90,11 +93,12 @@
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleDetail(row)">详情</el-button>
+            <el-button link type="primary" data-testid="sales-orders-btn-detail" @click="handleDetail(row)">详情</el-button>
             <el-button
               v-if="row.status === 'draft'"
               link
               type="primary"
+              data-testid="sales-orders-btn-confirm"
               @click="handleConfirm(row)"
             >
               确认
@@ -103,6 +107,7 @@
               v-if="row.status === 'draft'"
               link
               type="danger"
+              data-testid="sales-orders-btn-cancel"
               @click="handleCancel(row)"
             >
               取消
@@ -119,6 +124,7 @@
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
         style="margin-top: 20px; justify-content: flex-end"
+        data-testid="sales-orders-pagination"
         @size-change="fetchData"
         @current-change="fetchData"
       />

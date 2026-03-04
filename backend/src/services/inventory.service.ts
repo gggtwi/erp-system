@@ -75,6 +75,7 @@ export const getInventoryList = async (query: InventoryQuery) => {
     skuId: sku.id,
     skuCode: sku.code,
     skuName: sku.name,
+    specs: sku.specs, // 规格（颜色等）
     productId: sku.productId,
     productCode: sku.product.code,
     productName: sku.product.name,
@@ -195,12 +196,7 @@ export const adjustInventory = async (
     throw new AppError(400, 'SKU已禁用')
   }
 
-  const inventory = sku.inventory
-  if (!inventory) {
-    throw new AppError(400, '库存记录不存在')
-  }
-
-  const beforeQty = inventory.quantity
+  const beforeQty = sku.inventory?.quantity || 0
   let afterQty: number
 
   switch (type) {
@@ -224,9 +220,10 @@ export const adjustInventory = async (
   }
 
   await prisma.$transaction([
-    prisma.inventory.update({
+    prisma.inventory.upsert({
       where: { skuId },
-      data: { quantity: afterQty },
+      update: { quantity: afterQty },
+      create: { skuId, quantity: afterQty, lockedQty: 0 },
     }),
     prisma.inventoryLog.create({
       data: {
@@ -572,6 +569,48 @@ export const getSerialNumberDetail = async (serialNo: string) => {
   }
 }
 
+// ==================== 库存统计 ====================
+
+export interface InventoryStats {
+  totalProducts: number
+  totalSkus: number
+  warningCount: number
+  totalValue: number
+}
+
+// 获取库存统计
+export const getInventoryStats = async (warningThreshold = 10): Promise<InventoryStats> => {
+  // 商品总数
+  const totalProducts = await prisma.product.count({ where: { active: true } })
+  
+  // SKU 总数
+  const totalSkus = await prisma.sKU.count({ where: { active: true } })
+  
+  // 库存预警数量
+  const warningCount = await prisma.inventory.count({
+    where: {
+      quantity: { lte: warningThreshold },
+    },
+  })
+  
+  // 库存总值（按成本价计算）
+  const inventories = await prisma.inventory.findMany({
+    include: {
+      sku: { select: { costPrice: true } },
+    },
+  })
+  const totalValue = inventories.reduce((sum, inv) => {
+    return sum + inv.quantity * (inv.sku?.costPrice || 0)
+  }, 0)
+  
+  return {
+    totalProducts,
+    totalSkus,
+    warningCount,
+    totalValue,
+  }
+}
+
 // ==================== 库存预警 ====================
 
 export interface WarningConfig {
@@ -600,10 +639,13 @@ export const getInventoryWarning = async (config: WarningConfig = {}) => {
     skuId: inv.skuId,
     skuCode: inv.sku.code,
     skuName: inv.sku.name,
+    specs: inv.sku.specs,
     productId: inv.sku.productId,
     productCode: inv.sku.product.code,
     productName: inv.sku.product.name,
     categoryName: inv.sku.product.category.name,
+    price: inv.sku.price,
+    costPrice: inv.sku.costPrice,
     quantity: inv.quantity,
     threshold,
     shortage: threshold - inv.quantity,

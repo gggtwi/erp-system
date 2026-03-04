@@ -116,6 +116,14 @@ export const getSKUByCode = async (code: string) => {
 }
 
 export const createSKU = async (data: CreateSKUDTO) => {
+  // 价格校验：必须大于 0
+  if (data.price <= 0) {
+    throw new AppError(400, '销售价格必须大于0')
+  }
+  if (data.costPrice <= 0) {
+    throw new AppError(400, '成本价格必须大于0')
+  }
+
   // 检查编码是否已存在
   const existing = await prisma.sKU.findUnique({
     where: { code: data.code },
@@ -169,6 +177,14 @@ export const updateSKU = async (id: number, data: UpdateSKUDTO) => {
 
   if (!sku) {
     throw new AppError(404, 'SKU不存在')
+  }
+
+  // 价格校验：如果更新价格，必须大于 0
+  if (data.price !== undefined && data.price <= 0) {
+    throw new AppError(400, '销售价格必须大于0')
+  }
+  if (data.costPrice !== undefined && data.costPrice <= 0) {
+    throw new AppError(400, '成本价格必须大于0')
   }
 
   const updated = await prisma.sKU.update({

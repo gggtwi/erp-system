@@ -59,11 +59,11 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
     if (!name || !name.trim()) {
       return fail(res, 400, 'SKU名称不能为空')
     }
-    if (price === undefined || price < 0) {
-      return fail(res, 400, '请输入有效的销售价格')
+    if (price === undefined || price <= 0) {
+      return fail(res, 400, '销售价格必须大于0')
     }
-    if (costPrice === undefined || costPrice < 0) {
-      return fail(res, 400, '请输入有效的成本价格')
+    if (costPrice === undefined || costPrice <= 0) {
+      return fail(res, 400, '成本价格必须大于0')
     }
 
     const sku = await skuService.createSKU({
@@ -92,8 +92,20 @@ export const update = async (req: Request, res: Response, next: NextFunction) =>
     const data: any = {}
     if (req.body.name) data.name = req.body.name.trim()
     if (req.body.specs !== undefined) data.specs = req.body.specs
-    if (req.body.price !== undefined) data.price = parseFloat(req.body.price)
-    if (req.body.costPrice !== undefined) data.costPrice = parseFloat(req.body.costPrice)
+    if (req.body.price !== undefined) {
+      const price = parseFloat(req.body.price)
+      if (price <= 0) {
+        return fail(res, 400, '销售价格必须大于0')
+      }
+      data.price = price
+    }
+    if (req.body.costPrice !== undefined) {
+      const costPrice = parseFloat(req.body.costPrice)
+      if (costPrice <= 0) {
+        return fail(res, 400, '成本价格必须大于0')
+      }
+      data.costPrice = costPrice
+    }
     if (req.body.barcode !== undefined) data.barcode = req.body.barcode
     if (req.body.active !== undefined) data.active = req.body.active
 
