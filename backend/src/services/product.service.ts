@@ -196,7 +196,12 @@ export const deleteProduct = async (id: number) => {
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
-      skus: true,
+      skus: {
+        include: {
+          saleItems: true,
+          purchaseItems: true,
+        },
+      },
     },
   })
 
@@ -204,12 +209,46 @@ export const deleteProduct = async (id: number) => {
     throw new AppError(404, '商品不存在')
   }
 
-  if (product.skus.length > 0) {
-    throw new AppError(400, '存在关联SKU，无法删除')
+  // 检查是否有销售记录
+  const hasSaleItems = product.skus.some(sku => sku.saleItems.length > 0)
+  if (hasSaleItems) {
+    throw new AppError(400, '该商品的 SKU 已有销售记录，无法删除')
   }
 
-  await prisma.product.delete({
-    where: { id },
+  // 检查是否有采购记录
+  const hasPurchaseItems = product.skus.some(sku => sku.purchaseItems.length > 0)
+  if (hasPurchaseItems) {
+    throw new AppError(400, '该商品的 SKU 已有采购记录，无法删除')
+  }
+
+  // 使用事务级联删除
+  await prisma.$transaction(async (tx) => {
+    for (const sku of product.skus) {
+      // 删除库存日志
+      await tx.inventoryLog.deleteMany({
+        where: { skuId: sku.id },
+      })
+      
+      // 删除序列号
+      await tx.serialNumber.deleteMany({
+        where: { skuId: sku.id },
+      })
+      
+      // 删除库存
+      await tx.inventory.deleteMany({
+        where: { skuId: sku.id },
+      })
+      
+      // 删除 SKU
+      await tx.sKU.delete({
+        where: { id: sku.id },
+      })
+    }
+    
+    // 删除商品
+    await tx.product.delete({
+      where: { id },
+    })
   })
 
   return { success: true }

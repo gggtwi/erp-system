@@ -514,14 +514,10 @@ async function handleDelete(row: Product) {
   try {
     // 如果商品有 SKU，显示 SKU 信息确认框
     if (row.skus && row.skus.length > 0) {
-      const skuList = row.skus.map(sku => 
-        `• ${sku.name} (编码: ${sku.code}, 售价: ¥${sku.price})`
-      ).join('\n')
-      
       await ElMessageBox.confirm(
         h('div', [
           h('p', { style: 'margin-bottom: 12px; color: #E6A23C;' }, 
-            `该商品包含 ${row.skus.length} 个 SKU，删除后相关库存数据将丢失：`
+            `该商品包含 ${row.skus.length} 个 SKU，删除后将清除相关库存数据。`
           ),
           h('div', { 
             style: 'max-height: 200px; overflow-y: auto; padding: 12px; background: #f5f7fa; border-radius: 4px; font-size: 13px; line-height: 1.8;' 
@@ -532,7 +528,10 @@ async function handleDelete(row: Product) {
               h('span', { style: 'color: #67C23A; margin-left: 8px;' }, `¥${sku.price}`),
               sku.inventory && h('span', { style: 'color: #F56C6C; margin-left: 8px;' }, `库存: ${sku.inventory.quantity}`)
             ])
-          ))
+          )),
+          h('p', { style: 'margin-top: 12px; color: #F56C6C; font-size: 12px;' }, 
+            '注意：如果 SKU 已有销售或采购记录，将无法删除。'
+          )
         ]),
         '确认删除商品',
         {
@@ -550,8 +549,10 @@ async function handleDelete(row: Product) {
     await deleteProduct(row.id)
     ElMessage.success('删除成功')
     fetchData()
-  } catch (error) {
-    console.error(error)
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || '删除失败')
+    }
   }
 }
 
