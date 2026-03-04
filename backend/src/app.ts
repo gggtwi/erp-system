@@ -22,9 +22,10 @@ app.get('/health', (req, res) => {
 
 // API 路由
 import authRoutes from './routes/auth'
+import categoryRoutes from './routes/category'
+
 app.use('/api/auth', authRoutes)
-// app.use('/api/products', productRoutes)
-// ...
+app.use('/api/categories', categoryRoutes)
 
 // 404 处理
 app.use((req, res) => {
