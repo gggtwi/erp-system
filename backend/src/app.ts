@@ -25,11 +25,13 @@ import authRoutes from './routes/auth'
 import categoryRoutes from './routes/category'
 import productRoutes from './routes/product'
 import skuRoutes from './routes/sku'
+import inventoryRoutes from './routes/inventory'
 
 app.use('/api/auth', authRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/products', productRoutes)
 app.use('/api/skus', skuRoutes)
+app.use('/api/inventory', inventoryRoutes)
 
 // 404 处理
 app.use((req, res) => {
