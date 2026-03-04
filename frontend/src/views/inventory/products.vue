@@ -120,15 +120,23 @@
           <el-input v-model="formData.name" placeholder="请输入商品名称" data-testid="product-form-input-name" />
         </el-form-item>
         
-        <el-form-item label="分类" prop="categoryId">
-          <el-cascader
-            v-model="formData.categoryId"
-            :options="categoryTree"
-            :props="{ value: 'id', label: 'name', checkStrictly: true, emitPath: false }"
-            placeholder="请选择分类"
+        <el-form-item label="分类" prop="categoryName">
+          <el-select
+            v-model="formData.categoryName"
+            filterable
+            allow-create
+            default-first-option
+            placeholder="选择或输入分类名称"
             style="width: 100%"
-            data-testid="product-form-cascader-category"
-          />
+            data-testid="product-form-select-category"
+          >
+            <el-option
+              v-for="cat in flatCategories"
+              :key="cat.id"
+              :label="cat.name"
+              :value="cat.name"
+            />
+          </el-select>
         </el-form-item>
         
         <el-form-item label="单位" prop="unit">
@@ -345,6 +353,11 @@ const categoryTree = computed(() => {
   return buildTree(categories.value)
 })
 
+// 扁平化分类列表（用于下拉选择）
+const flatCategories = computed(() => {
+  return categories.value
+})
+
 function buildTree(list: Category[], parentId: number | null = null): any[] {
   return list
     .filter(item => item.parentId === parentId)
@@ -364,7 +377,7 @@ const editId = ref<number | null>(null)
 const formData = reactive({
   code: '',
   name: '',
-  categoryId: undefined as number | undefined,
+  categoryName: '',
   unit: '台',
   warranty: 12,
   active: true,
@@ -373,7 +386,7 @@ const formData = reactive({
 const rules: FormRules = {
   code: [{ required: true, message: '请输入商品编码', trigger: 'blur' }],
   name: [{ required: true, message: '请输入商品名称', trigger: 'blur' }],
-  categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
+  categoryName: [{ required: true, message: '请选择或输入分类', trigger: 'change' }],
   unit: [{ required: true, message: '请输入单位', trigger: 'blur' }],
 }
 
@@ -491,7 +504,7 @@ function handleEdit(row: Product) {
   Object.assign(formData, {
     code: row.code,
     name: row.name,
-    categoryId: row.categoryId,
+    categoryName: row.category?.name || '',
     unit: row.unit,
     warranty: row.warranty,
     active: row.active,
@@ -562,7 +575,7 @@ function handleDialogClosed() {
   Object.assign(formData, {
     code: '',
     name: '',
-    categoryId: undefined,
+    categoryName: '',
     unit: '台',
     warranty: 12,
     active: true,
@@ -578,11 +591,20 @@ async function handleSubmit() {
     
     submitLoading.value = true
     try {
+      const submitData = {
+        code: formData.code,
+        name: formData.name,
+        categoryName: formData.categoryName,
+        unit: formData.unit,
+        warranty: formData.warranty,
+        active: formData.active,
+      }
+      
       if (editId.value) {
-        await updateProduct(editId.value, formData)
+        await updateProduct(editId.value, submitData)
         ElMessage.success('更新成功')
       } else {
-        await createProduct(formData)
+        await createProduct(submitData)
         ElMessage.success('创建成功')
       }
       dialogVisible.value = false

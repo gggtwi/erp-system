@@ -12,7 +12,8 @@ export interface ProductQuery {
 export interface CreateProductDTO {
   code: string
   name: string
-  categoryId: number
+  categoryId?: number
+  categoryName?: string
   brand?: string
   unit: string
   warranty?: number
@@ -21,6 +22,7 @@ export interface CreateProductDTO {
 export interface UpdateProductDTO {
   name?: string
   categoryId?: number
+  categoryName?: string
   brand?: string
   unit?: string
   warranty?: number
@@ -124,9 +126,35 @@ export const createProduct = async (data: CreateProductDTO) => {
     throw new AppError(400, '商品编码已存在')
   }
 
+  // 处理分类：支持 categoryId（数字）或 categoryName（字符串）
+  let categoryId = data.categoryId
+  
+  if (!categoryId && data.categoryName) {
+    // 查找或创建分类
+    let category = await prisma.category.findFirst({
+      where: { name: data.categoryName },
+    })
+    
+    if (!category) {
+      // 创建新分类
+      category = await prisma.category.create({
+        data: {
+          name: data.categoryName,
+          sort: 0,
+        },
+      })
+    }
+    
+    categoryId = category.id
+  }
+
+  if (!categoryId) {
+    throw new AppError(400, '请选择或输入分类')
+  }
+
   // 检查分类是否存在
   const category = await prisma.category.findUnique({
-    where: { id: data.categoryId },
+    where: { id: categoryId },
   })
 
   if (!category) {
@@ -137,7 +165,7 @@ export const createProduct = async (data: CreateProductDTO) => {
     data: {
       code: data.code,
       name: data.name,
-      categoryId: data.categoryId,
+      categoryId: categoryId,
       brand: data.brand,
       unit: data.unit,
       warranty: data.warranty || 12,
@@ -170,10 +198,32 @@ export const updateProduct = async (id: number, data: UpdateProductDTO) => {
     throw new AppError(404, '商品不存在')
   }
 
+  // 处理分类：支持 categoryId 或 categoryName
+  let categoryId = data.categoryId
+  
+  if (!categoryId && data.categoryName) {
+    // 查找或创建分类
+    let category = await prisma.category.findFirst({
+      where: { name: data.categoryName },
+    })
+    
+    if (!category) {
+      // 创建新分类
+      category = await prisma.category.create({
+        data: {
+          name: data.categoryName,
+          sort: 0,
+        },
+      })
+    }
+    
+    categoryId = category.id
+  }
+
   // 如果更改分类，检查分类是否存在
-  if (data.categoryId) {
+  if (categoryId) {
     const category = await prisma.category.findUnique({
-      where: { id: data.categoryId },
+      where: { id: categoryId },
     })
 
     if (!category) {
@@ -181,9 +231,16 @@ export const updateProduct = async (id: number, data: UpdateProductDTO) => {
     }
   }
 
+  const updateData: any = { ...data }
+  if (categoryId) {
+    updateData.categoryId = categoryId
+  }
+  // 删除 categoryName，因为不是数据库字段
+  delete updateData.categoryName
+
   const updated = await prisma.product.update({
     where: { id },
-    data,
+    data: updateData,
     include: {
       category: true,
     },

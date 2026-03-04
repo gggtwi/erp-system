@@ -48,7 +48,7 @@ export const getByCode = async (req: Request, res: Response, next: NextFunction)
 
 export const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { code, name, categoryId, brand, unit, warranty } = req.body
+    const { code, name, categoryId, categoryName, brand, unit, warranty } = req.body
 
     if (!code || !code.trim()) {
       return fail(res, 400, '商品编码不能为空')
@@ -56,8 +56,8 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
     if (!name || !name.trim()) {
       return fail(res, 400, '商品名称不能为空')
     }
-    if (!categoryId) {
-      return fail(res, 400, '请选择分类')
+    if (!categoryId && !categoryName) {
+      return fail(res, 400, '请选择或输入分类')
     }
     if (!unit || !unit.trim()) {
       return fail(res, 400, '单位不能为空')
@@ -66,7 +66,8 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
     const product = await productService.createProduct({
       code: code.trim(),
       name: name.trim(),
-      categoryId,
+      categoryId: categoryId ? parseInt(categoryId) : undefined,
+      categoryName: categoryName?.trim(),
       brand: brand?.trim(),
       unit: unit.trim(),
       warranty,
