@@ -34,7 +34,11 @@ request.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      // 如果不是登录页面，才重定向到登录页
+      // 这样登录失败时可以显示错误消息
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login'
+      }
     }
     ElMessage.error(error.response?.data?.message || '网络错误')
     return Promise.reject(error)
