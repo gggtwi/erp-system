@@ -73,13 +73,16 @@
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link size="small" data-testid="customer-btn-detail" @click="handleViewDetail(row.id)">
               详情
             </el-button>
             <el-button type="primary" link size="small" data-testid="customer-btn-edit" @click="handleEdit(row)">
               编辑
+            </el-button>
+            <el-button type="danger" link size="small" data-testid="customer-btn-delete" @click="handleDelete(row)">
+              删除
             </el-button>
           </template>
         </el-table-column>
@@ -149,9 +152,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { getCustomers, createCustomer, updateCustomer, type CustomerQuery, type CreateCustomerParams } from '@/api/customer'
+import { getCustomers, createCustomer, updateCustomer, deleteCustomer, type CustomerQuery, type CreateCustomerParams } from '@/api/customer'
 import type { Customer } from '@/types'
 import type { FormInstance, FormRules } from 'element-plus'
 
@@ -263,6 +266,29 @@ function handleEdit(row: Customer) {
     status: row.status || 'normal',
   })
   dialogVisible.value = true
+}
+
+// 删除客户
+async function handleDelete(row: Customer) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除客户「${row.name}」吗？如果该客户有销售订单、应收账款或收款记录，将无法删除。`,
+      '删除确认',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+    
+    await deleteCustomer(row.id)
+    ElMessage.success('删除成功')
+    fetchCustomers()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || '删除失败')
+    }
+  }
 }
 
 // 查看详情

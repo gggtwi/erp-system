@@ -22,4 +22,7 @@ router.get('/:id/history', authMiddleware, customerController.getHistory)
 // 获取客户欠款信息
 router.get('/:id/debt', authMiddleware, rbacMiddleware(['admin', 'finance', 'sales']), customerController.getDebt)
 
+// 删除客户（仅管理员）
+router.delete('/:id', authMiddleware, rbacMiddleware(['admin']), customerController.remove)
+
 export default router

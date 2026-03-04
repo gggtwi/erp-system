@@ -110,3 +110,18 @@ export const getDebt = async (req: Request, res: Response, next: NextFunction) =
     next(error)
   }
 }
+
+// 删除客户
+export const remove = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = parseInt(req.params.id as string)
+    if (isNaN(id)) {
+      return fail(res, 400, '无效的客户ID')
+    }
+
+    await customerService.deleteCustomer(id)
+    return success(res, { success: true }, '删除成功')
+  } catch (error) {
+    next(error)
+  }
+}

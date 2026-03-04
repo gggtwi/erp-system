@@ -251,3 +251,40 @@ export const getCustomerDebt = async (customerId: number) => {
     availableCredit: customer.creditLimit - customer.balance,
   }
 }
+
+// 删除客户
+export const deleteCustomer = async (id: number) => {
+  const customer = await prisma.customer.findUnique({
+    where: { id },
+    include: {
+      sales: { select: { id: true, orderNo: true } },
+      receivables: { select: { id: true } },
+      payments: { select: { id: true } },
+    },
+  })
+
+  if (!customer) {
+    throw new AppError(404, '客户不存在')
+  }
+
+  // 检查是否有销售订单
+  if (customer.sales.length > 0) {
+    throw new AppError(400, `该客户有 ${customer.sales.length} 笔销售订单，无法删除`)
+  }
+
+  // 检查是否有应收账款
+  if (customer.receivables.length > 0) {
+    throw new AppError(400, '该客户有应收账款记录，无法删除')
+  }
+
+  // 检查是否有收款记录
+  if (customer.payments.length > 0) {
+    throw new AppError(400, '该客户有收款记录，无法删除')
+  }
+
+  await prisma.customer.delete({
+    where: { id },
+  })
+
+  return { success: true }
+}

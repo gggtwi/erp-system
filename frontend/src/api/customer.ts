@@ -70,6 +70,11 @@ export function getCustomerDebt(id: number) {
   return request.get<CustomerDebt>(`/customers/${id}/debt`)
 }
 
+// 删除客户
+export function deleteCustomer(id: number) {
+  return request.delete(`/customers/${id}`)
+}
+
 // 生成临时会员编码
 export function generateTempCustomerCode(): string {
   const timestamp = Date.now().toString().slice(-6)
