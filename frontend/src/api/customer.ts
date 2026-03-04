@@ -70,7 +70,7 @@ export function getCustomerDebt(id: number) {
   return request.get<CustomerDebt>(`/customers/${id}/debt`)
 }
 
-// 生成临时客户编码
+// 生成临时会员编码
 export function generateTempCustomerCode(): string {
   const timestamp = Date.now().toString().slice(-6)
   const random = Math.floor(Math.random() * 100).toString().padStart(2, '0')

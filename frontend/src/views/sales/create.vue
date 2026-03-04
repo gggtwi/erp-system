@@ -146,7 +146,7 @@
                 新建会员
               </el-button>
               <el-button type="warning" data-testid="sales-create-btn-temp-customer" @click="createTempCustomer">
-                临时客户
+                临时会员
               </el-button>
             </div>
           </el-form-item>
@@ -487,17 +487,17 @@ async function handleCreateMember() {
   }
 }
 
-// 创建临时客户
+// 创建临时会员
 async function createTempCustomer() {
   try {
-    // 生成临时客户编码：TMP + 时间戳后6位 + 随机数
+    // 生成临时会员编码：TMP + 时间戳后6位 + 随机数
     const code = generateTempCustomerCode()
     const customer = await createCustomer({
       code,
-      name: `临时客户-${code}`,
+      name: `临时会员-${code}`,
     })
     
-    ElMessage.success(`临时客户 ${code} 创建成功`)
+    ElMessage.success(`临时会员 ${code} 创建成功`)
     
     // 刷新客户列表并选中新建的客户
     await fetchCustomers()
