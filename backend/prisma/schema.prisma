@@ -1,0 +1,282 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== 用户与权限 ====================
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  name      String
+  role      String   // admin, finance, sales, warehouse, purchase
+  phone     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sales     Sale[]
+  purchases Purchase[]
+  logs      InventoryLog[]
+  payments  Payment[]
+
+  @@map("users")
+}
+
+model Setting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ==================== 商品与库存 ====================
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String
+  parentId  Int?
+  sort      Int       @default(0)
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  products Product[]
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children Category[] @relation("CategoryTree")
+
+  @@map("categories")
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique
+  name        String
+  categoryId  Int
+  brand       String?
+  unit        String
+  warranty    Int       @default(12)
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  category      Category       @relation(fields: [categoryId], references: [id])
+  skus          SKU[]
+
+  @@map("products")
+}
+
+model SKU {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  code      String   @unique
+  name      String
+  specs     String?  // JSON 字符串存储规格属性
+  price     Float
+  costPrice Float
+  barcode   String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product       Product        @relation(fields: [productId], references: [id])
+  inventory     Inventory?
+  serialNumbers SerialNumber[]
+  saleItems     SaleItem[]
+  purchaseItems PurchaseItem[]
+  logs          InventoryLog[]
+
+  @@map("skus")
+}
+
+model Inventory {
+  id        Int      @id @default(autoincrement())
+  skuId     Int      @unique
+  quantity  Int      @default(0)
+  lockedQty Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  sku SKU @relation(fields: [skuId], references: [id], onDelete: Cascade)
+
+  @@map("inventory")
+}
+
+model SerialNumber {
+  id          Int       @id @default(autoincrement())
+  skuId       Int
+  serialNo    String
+  status      String    // in_stock, sold, returned
+  saleId      Int?
+  customerId  Int?
+  warrantyExp DateTime?
+  createdAt   DateTime  @default(now())
+  soldAt      DateTime?
+
+  sku SKU @relation(fields: [skuId], references: [id], onDelete: Cascade)
+
+  @@unique([skuId, serialNo])
+  @@map("serial_numbers")
+}
+
+model InventoryLog {
+  id         Int      @id @default(autoincrement())
+  skuId      Int
+  type       String   // in, out, adjust
+  quantity   Int
+  beforeQty  Int
+  afterQty   Int
+  refType    String?  // sale, purchase, adjust
+  refId      Int?
+  remark     String?
+  operatorId Int
+  createdAt  DateTime @default(now())
+
+  sku      SKU  @relation(fields: [skuId], references: [id], onDelete: NoAction)
+  operator User @relation(fields: [operatorId], references: [id])
+
+  @@index([skuId, createdAt])
+  @@map("inventory_logs")
+}
+
+// ==================== 客户与应收 ====================
+
+model Customer {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  phone       String?
+  address     String?
+  creditLimit Float    @default(0)
+  balance     Float    @default(0)
+  status      String   @default("normal")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sales       Sale[]
+  receivables Receivable[]
+  payments    Payment[]
+
+  @@map("customers")
+}
+
+model Receivable {
+  id         Int      @id @default(autoincrement())
+  customerId Int
+  saleId     Int      @unique
+  amount     Float
+  paidAmount Float    @default(0)
+  status     String   // unpaid, partial, paid
+  dueDate    DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  sale     Sale     @relation(fields: [saleId], references: [id])
+  payments Payment[]
+
+  @@index([customerId, status])
+  @@map("receivables")
+}
+
+model Payment {
+  id           Int      @id @default(autoincrement())
+  receivableId Int
+  customerId   Int
+  amount       Float
+  method       String   // cash, wechat, alipay, bank
+  remark       String?
+  operatorId   Int
+  createdAt    DateTime @default(now())
+
+  receivable Receivable @relation(fields: [receivableId], references: [id])
+  customer   Customer   @relation(fields: [customerId], references: [id])
+  operator   User       @relation(fields: [operatorId], references: [id])
+
+  @@index([customerId, createdAt])
+  @@map("payments")
+}
+
+// ==================== 销售与采购 ====================
+
+model Sale {
+  id             Int      @id @default(autoincrement())
+  orderNo        String   @unique
+  customerId     Int
+  totalAmount    Float
+  discountAmount Float    @default(0)
+  paidAmount     Float    @default(0)
+  debtAmount     Float    @default(0)
+  status         String   @default("draft") // draft, confirmed, completed, cancelled
+  paymentStatus  String   @default("unpaid")
+  shopId         Int?
+  remark         String?
+  operatorId     Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  customer  Customer    @relation(fields: [customerId], references: [id])
+  operator  User        @relation(fields: [operatorId], references: [id])
+  items     SaleItem[]
+  receivable Receivable?
+
+  @@index([customerId, createdAt])
+  @@index([status, createdAt])
+  @@map("sales")
+}
+
+model SaleItem {
+  id       Int     @id @default(autoincrement())
+  saleId   Int
+  skuId    Int
+  quantity Int
+  price    Float
+  amount   Float
+  serialNo String?
+  remark   String?
+
+  sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  sku  SKU  @relation(fields: [skuId], references: [id])
+
+  @@map("sale_items")
+}
+
+model Purchase {
+  id          Int      @id @default(autoincrement())
+  orderNo     String   @unique
+  supplier    String?
+  totalAmount Float
+  status      String   @default("draft")
+  remark      String?
+  operatorId  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  operator User           @relation(fields: [operatorId], references: [id])
+  items    PurchaseItem[]
+
+  @@index([status, createdAt])
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id         Int     @id @default(autoincrement())
+  purchaseId Int
+  skuId      Int
+  quantity   Int
+  costPrice  Float
+  amount     Float
+  serialNos  String? // JSON 字符串存储序列号数组
+  remark     String?
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  sku      SKU      @relation(fields: [skuId], references: [id])
+
+  @@map("purchase_items")
+}
