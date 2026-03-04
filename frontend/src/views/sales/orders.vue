@@ -113,7 +113,7 @@
               取消
             </el-button>
             <el-button
-              v-if="row.status === 'cancelled'"
+              v-if="row.status === 'cancelled' || isSuperAdmin"
               link
               type="danger"
               data-testid="sales-orders-btn-delete"
@@ -142,14 +142,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getSales, confirmSale, cancelSale, deleteSale } from '@/api/sale'
+import { useUserStore } from '@/stores/user'
 import type { Sale } from '@/types'
 import dayjs from 'dayjs'
 
 const router = useRouter()
+const userStore = useUserStore()
+
+// 超级管理员判断
+const isSuperAdmin = computed(() => userStore.role === 'super_admin')
 
 // 搜索表单
 const searchForm = reactive({
@@ -287,16 +292,19 @@ async function handleCancel(row: Sale) {
 
 // 删除订单
 async function handleDelete(row: Sale) {
+  // 根据订单状态构建不同的确认消息
+  let confirmMessage = `确定要删除订单「${row.orderNo}」吗？此操作不可恢复。`
+  
+  if (row.status === 'confirmed' || row.status === 'completed') {
+    confirmMessage = `订单「${row.orderNo}」状态为「${getStatusText(row.status)}」，删除后将自动恢复库存。确定要删除吗？此操作不可恢复。`
+  }
+  
   try {
-    await ElMessageBox.confirm(
-      `确定要删除订单「${row.orderNo}」吗？此操作不可恢复。`,
-      '删除确认',
-      {
-        confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    )
+    await ElMessageBox.confirm(confirmMessage, '删除确认', {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
     await deleteSale(row.id)
     ElMessage.success('订单已删除')
     fetchData()

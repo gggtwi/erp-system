@@ -749,8 +749,8 @@ export const getPrintData = async (id: number) => {
   }
 }
 
-// 删除订单（仅限已取消状态）
-export const deleteSale = async (id: number) => {
+// 删除订单
+export const deleteSale = async (id: number, operatorId: number, operatorRole: string) => {
   const sale = await prisma.sale.findUnique({
     where: { id },
     include: {
@@ -765,13 +765,58 @@ export const deleteSale = async (id: number) => {
     throw new AppError(404, '订单不存在')
   }
 
-  // 只允许删除已取消的订单
-  if (sale.status !== 'cancelled') {
+  // 超级管理员可以删除任何订单，其他用户只能删除已取消的订单
+  const isSuperAdmin = operatorRole === 'super_admin'
+  
+  if (!isSuperAdmin && sale.status !== 'cancelled') {
     throw new AppError(400, '只能删除已取消的订单')
   }
 
   // 使用事务删除订单及相关数据
   await prisma.$transaction(async (tx) => {
+    // 如果删除已确认/已完成的订单（超级管理员操作），需要恢复库存
+    if (sale.status === 'confirmed' || sale.status === 'completed') {
+      for (const item of sale.items) {
+        const inventory = await tx.inventory.findUnique({
+          where: { skuId: item.skuId },
+        })
+
+        if (inventory) {
+          const beforeQty = inventory.quantity
+          const afterQty = beforeQty + item.quantity
+
+          await tx.inventory.update({
+            where: { skuId: item.skuId },
+            data: { quantity: afterQty },
+          })
+
+          await tx.inventoryLog.create({
+            data: {
+              skuId: item.skuId,
+              type: 'in',
+              quantity: item.quantity,
+              beforeQty,
+              afterQty,
+              refType: 'sale_delete',
+              refId: sale.id,
+              remark: '订单删除退回库存',
+              operatorId,
+            },
+          })
+        }
+      }
+
+      // 恢复客户欠款
+      if (sale.receivable) {
+        await tx.customer.update({
+          where: { id: sale.customerId },
+          data: {
+            balance: { decrement: sale.debtAmount },
+          },
+        })
+      }
+    }
+
     // 删除收款记录
     if (sale.receivable && sale.receivable.payments.length > 0) {
       await tx.payment.deleteMany({

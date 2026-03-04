@@ -40,7 +40,16 @@ export const authMiddleware = (
 
 export const rbacMiddleware = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (!req.user) {
+      return fail(res, 403, '无权限访问')
+    }
+    
+    // 超级管理员拥有所有权限
+    if (req.user.role === 'super_admin') {
+      return next()
+    }
+    
+    if (!roles.includes(req.user.role)) {
       return fail(res, 403, '无权限访问')
     }
     next()

@@ -197,7 +197,8 @@ export const remove = async (req: Request, res: Response, next: NextFunction) =>
       return fail(res, 400, '无效的订单ID')
     }
 
-    await saleService.deleteSale(id)
+    const { userId, role } = req.user!
+    await saleService.deleteSale(id, userId, role)
     return success(res, { success: true }, '订单已删除')
   } catch (error) {
     next(error)
