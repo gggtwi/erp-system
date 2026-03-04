@@ -29,7 +29,7 @@
         </el-select>
         
         <el-button type="primary" data-testid="products-btn-search" @click="handleSearch">搜索</el-button>
-        <el-button data-testid="products-btn-reset" @click="handleReset">重置</el-button>
+        <el-button data-testid="products-btn-refresh" @click="handleRefresh">刷新</el-button>
         <el-button type="primary" data-testid="products-btn-add" @click="handleAdd">新增商品</el-button>
       </div>
       
@@ -573,12 +573,9 @@ function handleSearch() {
   fetchData()
 }
 
-// 重置
-function handleReset() {
-  searchForm.keyword = ''
-  searchForm.categoryId = undefined
-  searchForm.active = undefined
-  handleSearch()
+// 刷新
+function handleRefresh() {
+  fetchData()
 }
 
 // 新增
