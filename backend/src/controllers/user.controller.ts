@@ -50,3 +50,35 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
     next(error)
   }
 }
+
+// 创建用户
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { username, name, role, password, phone, active } = req.body
+    const operatorRole = req.user!.role
+
+    const user = await userService.createUser(operatorRole, {
+      username,
+      name,
+      role,
+      password,
+      phone,
+      active,
+    })
+
+    return success(res, user, '用户创建成功')
+  } catch (error) {
+    next(error)
+  }
+}
+
+// 获取可创建的角色列表
+export const getCreatableRoles = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const operatorRole = req.user!.role
+    const roles = userService.getCreatableRoles(operatorRole)
+    return success(res, roles)
+  } catch (error) {
+    next(error)
+  }
+}

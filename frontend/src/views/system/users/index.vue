@@ -4,6 +4,14 @@
       <template #header>
         <div class="card-header">
           <span>用户管理</span>
+          <el-button
+            v-if="canCreateUser"
+            type="primary"
+            data-testid="user-btn-create"
+            @click="handleOpenCreateDialog"
+          >
+            新增用户
+          </el-button>
         </div>
       </template>
 
@@ -93,6 +101,79 @@
       />
     </el-card>
 
+    <!-- 新增用户弹窗 -->
+    <el-dialog
+      v-model="createDialogVisible"
+      title="新增用户"
+      width="500px"
+      destroy-on-close
+      data-testid="create-user-dialog"
+    >
+      <el-form ref="createFormRef" :model="createForm" :rules="createRules" label-width="100px" data-testid="create-user-form">
+        <el-form-item label="用户名" prop="username">
+          <el-input
+            v-model="createForm.username"
+            placeholder="请输入用户名"
+            data-testid="create-form-input-username"
+          />
+        </el-form-item>
+        <el-form-item label="姓名" prop="name">
+          <el-input
+            v-model="createForm.name"
+            placeholder="请输入姓名"
+            data-testid="create-form-input-name"
+          />
+        </el-form-item>
+        <el-form-item label="角色" prop="role">
+          <el-select v-model="createForm.role" placeholder="请选择角色" style="width: 100%" data-testid="create-form-select-role">
+            <el-option
+              v-for="role in creatableRoles"
+              :key="role"
+              :label="getRoleText(role)"
+              :value="role"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input
+            v-model="createForm.password"
+            type="password"
+            placeholder="请输入密码（至少6位）"
+            show-password
+            data-testid="create-form-input-password"
+          />
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input
+            v-model="createForm.confirmPassword"
+            type="password"
+            placeholder="请再次输入密码"
+            show-password
+            data-testid="create-form-input-confirm"
+          />
+        </el-form-item>
+        <el-form-item label="手机号" prop="phone">
+          <el-input
+            v-model="createForm.phone"
+            placeholder="请输入手机号（可选）"
+            data-testid="create-form-input-phone"
+          />
+        </el-form-item>
+        <el-form-item label="状态" prop="active">
+          <el-switch
+            v-model="createForm.active"
+            active-text="启用"
+            inactive-text="禁用"
+            data-testid="create-form-switch-active"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button data-testid="create-dialog-btn-cancel" @click="createDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitting" data-testid="create-dialog-btn-submit" @click="handleSubmitCreate">确定</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 修改密码弹窗 -->
     <el-dialog
       v-model="passwordDialogVisible"
@@ -145,7 +226,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
-import { getUsers, changeUserPassword, type User, type UserQuery } from '@/api/user'
+import { getUsers, changeUserPassword, createUser, getCreatableRoles, type User, type UserQuery, type CreateUserParams } from '@/api/user'
 import type { FormInstance, FormRules } from 'element-plus'
 
 const userStore = useUserStore()
@@ -168,10 +249,64 @@ const pagination = reactive({
 const loading = ref(false)
 const userList = ref<User[]>([])
 
+// 可创建的角色列表
+const creatableRoles = ref<string[]>([])
+
+// 是否可以创建用户
+const canCreateUser = computed(() => {
+  const role = userStore.role
+  return role === 'super_admin' || role === 'admin'
+})
+
+// 新增用户相关
+const createDialogVisible = ref(false)
+const submitting = ref(false)
+const createFormRef = ref<FormInstance>()
+const createForm = reactive({
+  username: '',
+  name: '',
+  role: '',
+  password: '',
+  confirmPassword: '',
+  phone: '',
+  active: true,
+})
+
+// 新增用户表单验证规则
+const createRules = computed<FormRules>(() => ({
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 2, max: 20, message: '用户名长度为2-20个字符', trigger: 'blur' },
+  ],
+  name: [
+    { required: true, message: '请输入姓名', trigger: 'blur' },
+    { min: 2, max: 20, message: '姓名长度为2-20个字符', trigger: 'blur' },
+  ],
+  role: [
+    { required: true, message: '请选择角色', trigger: 'change' },
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
+  ],
+  confirmPassword: [
+    { required: true, message: '请确认密码', trigger: 'blur' },
+    {
+      validator: (_rule, value, callback) => {
+        if (value !== createForm.password) {
+          callback(new Error('两次输入的密码不一致'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
+}))
+
 // 修改密码相关
 const passwordDialogVisible = ref(false)
 const currentUser = ref<User | null>(null)
-const submitting = ref(false)
 const passwordFormRef = ref<FormInstance>()
 const passwordForm = reactive({
   oldPassword: '',
@@ -236,6 +371,15 @@ async function fetchUsers() {
   }
 }
 
+// 获取可创建的角色列表
+async function fetchCreatableRoles() {
+  try {
+    creatableRoles.value = await getCreatableRoles()
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 // 搜索
 function handleSearch() {
   pagination.page = 1
@@ -249,6 +393,44 @@ function handleReset() {
   searchParams.active = undefined
   pagination.page = 1
   fetchUsers()
+}
+
+// 打开新增用户弹窗
+function handleOpenCreateDialog() {
+  createForm.username = ''
+  createForm.name = ''
+  createForm.role = ''
+  createForm.password = ''
+  createForm.confirmPassword = ''
+  createForm.phone = ''
+  createForm.active = true
+  createDialogVisible.value = true
+}
+
+// 提交新增用户
+async function handleSubmitCreate() {
+  const valid = await createFormRef.value?.validate().catch(() => false)
+  if (!valid) return
+
+  submitting.value = true
+  try {
+    const params: CreateUserParams = {
+      username: createForm.username,
+      name: createForm.name,
+      role: createForm.role,
+      password: createForm.password,
+      phone: createForm.phone || undefined,
+      active: createForm.active,
+    }
+    await createUser(params)
+    ElMessage.success('用户创建成功')
+    createDialogVisible.value = false
+    fetchUsers()
+  } catch (error: any) {
+    ElMessage.error(error.message || '用户创建失败')
+  } finally {
+    submitting.value = false
+  }
 }
 
 // 打开修改密码弹窗
@@ -314,6 +496,9 @@ function formatDate(date: string) {
 
 onMounted(() => {
   fetchUsers()
+  if (canCreateUser.value) {
+    fetchCreatableRoles()
+  }
 })
 </script>
 

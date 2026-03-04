@@ -7,6 +7,12 @@ const router = Router()
 // 所有路由都需要认证
 router.use(authMiddleware)
 
+// 获取可创建的角色列表
+router.get('/creatable-roles', userController.getCreatableRoles)
+
+// 创建用户
+router.post('/', userController.createUser)
+
 // 获取用户列表
 router.get('/', userController.getUsers)
 
