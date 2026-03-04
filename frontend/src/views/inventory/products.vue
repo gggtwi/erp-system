@@ -56,15 +56,27 @@
             {{ row.skus?.length || 0 }}
           </template>
         </el-table-column>
-        <el-table-column label="库存" width="100">
+        <el-table-column label="库存" width="130">
           <template #default="{ row }">
-            <el-tag v-if="getTotalStock(row) <= 0" type="danger">
-              {{ getTotalStock(row) }}
-            </el-tag>
-            <el-tag v-else-if="getTotalStock(row) <= 10" type="warning">
-              {{ getTotalStock(row) }}
-            </el-tag>
-            <span v-else>{{ getTotalStock(row) }}</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <el-tag v-if="getTotalStock(row) <= 0" type="danger">
+                {{ getTotalStock(row) }}
+              </el-tag>
+              <el-tag v-else-if="getTotalStock(row) <= 10" type="warning">
+                {{ getTotalStock(row) }}
+              </el-tag>
+              <span v-else>{{ getTotalStock(row) }}</span>
+              <el-button 
+                v-if="row.skus?.length > 0 && canAdjustStock"
+                link 
+                type="primary" 
+                size="small"
+                data-testid="products-btn-stock"
+                @click="handleEditStock(row)"
+              >
+                <el-icon><Edit /></el-icon>
+              </el-button>
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="状态" width="80">
@@ -317,17 +329,89 @@
         </el-button>
       </template>
     </el-dialog>
+    
+    <!-- 库存编辑对话框 -->
+    <el-dialog
+      v-model="stockDialogVisible"
+      title="库存调整"
+      width="700px"
+      data-testid="stock-dialog"
+    >
+      <div v-if="stockProduct">
+        <el-descriptions :column="2" border style="margin-bottom: 20px;">
+          <el-descriptions-item label="商品名称">{{ stockProduct.name }}</el-descriptions-item>
+          <el-descriptions-item label="商品编码">{{ stockProduct.code }}</el-descriptions-item>
+        </el-descriptions>
+        
+        <el-table :data="stockSkus" border data-testid="stock-sku-table">
+          <el-table-column prop="code" label="SKU编码" width="130" />
+          <el-table-column prop="name" label="规格名称" min-width="120" />
+          <el-table-column label="当前库存" width="100" align="center">
+            <template #default="{ row }">
+              {{ row.inventory?.quantity || 0 }}
+            </template>
+          </el-table-column>
+          <el-table-column label="调整后库存" width="150">
+            <template #default="{ row }">
+              <el-input-number
+                v-model="row.newQuantity"
+                :min="0"
+                :precision="0"
+                controls-position="right"
+                size="small"
+                style="width: 120px"
+                :data-testid="`stock-input-quantity-${row.id}`"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column label="变动" width="100" align="center">
+            <template #default="{ row }">
+              <span :style="{ color: (row.newQuantity - (row.inventory?.quantity || 0)) >= 0 ? 'green' : 'red' }">
+                {{ (row.newQuantity - (row.inventory?.quantity || 0)) >= 0 ? '+' : '' }}{{ row.newQuantity - (row.inventory?.quantity || 0) }}
+              </span>
+            </template>
+          </el-table-column>
+        </el-table>
+        
+        <el-form-item label="备注" style="margin-top: 16px;">
+          <el-input
+            v-model="stockRemark"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入调整原因"
+            data-testid="stock-input-remark"
+          />
+        </el-form-item>
+      </div>
+      <template #footer>
+        <el-button data-testid="stock-dialog-btn-cancel" @click="stockDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="stockSubmitLoading" data-testid="stock-dialog-btn-submit" @click="handleStockSubmit">
+          确定调整
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed, h } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Edit } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getProducts, getCategories, createProduct, updateProduct, deleteProduct, getProduct } from '@/api/product'
 import { createSKU, updateSKU, deleteSKU } from '@/api/sku'
 import { getActiveSpecTypes, type SpecType } from '@/api/spec'
+import { adjustInventory } from '@/api/inventory'
+import { useUserStore } from '@/stores/user'
 import type { Product, Category, SKU } from '@/types'
+
+const userStore = useUserStore()
+
+// 检查是否有库存调整权限（admin, warehouse, super_admin）
+const canAdjustStock = computed(() => {
+  const role = userStore.role
+  return role === 'super_admin' || role === 'admin' || role === 'warehouse'
+})
 
 // 搜索表单
 const searchForm = reactive({
@@ -403,6 +487,13 @@ const skuDialogTitle = ref('新增 SKU')
 const skuFormRef = ref<FormInstance>()
 const skuSubmitLoading = ref(false)
 const skuEditId = ref<number | null>(null)
+
+// 库存编辑相关
+const stockDialogVisible = ref(false)
+const stockProduct = ref<Product | null>(null)
+const stockSkus = ref<(SKU & { newQuantity: number })[]>([])
+const stockRemark = ref('')
+const stockSubmitLoading = ref(false)
 
 // 规格项接口
 interface SpecItem {
@@ -711,6 +802,60 @@ async function handleDeleteSKU(row: SKU) {
     }
   } catch (error) {
     console.error(error)
+  }
+}
+
+// 编辑库存
+function handleEditStock(row: Product) {
+  stockProduct.value = row
+  stockSkus.value = (row.skus || []).map(sku => ({
+    ...sku,
+    newQuantity: sku.inventory?.quantity || 0,
+  }))
+  stockRemark.value = ''
+  stockDialogVisible.value = true
+}
+
+// 提交库存调整
+async function handleStockSubmit() {
+  if (!stockSkus.value.length) {
+    ElMessage.warning('没有可调整的库存')
+    return
+  }
+  
+  // 检查是否有变动
+  const changedSkus = stockSkus.value.filter(sku => {
+    const oldQty = sku.inventory?.quantity || 0
+    return sku.newQuantity !== oldQty
+  })
+  
+  if (changedSkus.length === 0) {
+    ElMessage.warning('库存未发生变化')
+    return
+  }
+  
+  stockSubmitLoading.value = true
+  try {
+    // 逐个调整库存
+    for (const sku of changedSkus) {
+      const oldQty = sku.inventory?.quantity || 0
+      await adjustInventory({
+        skuId: sku.id,
+        quantity: sku.newQuantity,
+        type: 'adjust',
+        remark: stockRemark.value || undefined,
+      })
+    }
+    
+    ElMessage.success(`成功调整 ${changedSkus.length} 个 SKU 的库存`)
+    stockDialogVisible.value = false
+    
+    // 刷新商品列表
+    await fetchData()
+  } catch (error: any) {
+    ElMessage.error(error.message || '库存调整失败')
+  } finally {
+    stockSubmitLoading.value = false
   }
 }
 
