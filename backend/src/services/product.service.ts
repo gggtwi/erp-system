@@ -9,6 +9,16 @@ export interface ProductQuery {
   pageSize?: number
 }
 
+export interface CreateSKUDTO {
+  code: string
+  name: string
+  specs?: string
+  price: number
+  costPrice: number
+  barcode?: string
+  warningThreshold?: number
+}
+
 export interface CreateProductDTO {
   code: string
   name: string
@@ -17,6 +27,7 @@ export interface CreateProductDTO {
   brand?: string
   unit: string
   warranty?: number
+  skus?: CreateSKUDTO[]
 }
 
 export interface UpdateProductDTO {
@@ -161,6 +172,7 @@ export const createProduct = async (data: CreateProductDTO) => {
     throw new AppError(400, '分类不存在')
   }
 
+  // 创建商品
   const product = await prisma.product.create({
     data: {
       code: data.code,
@@ -175,16 +187,36 @@ export const createProduct = async (data: CreateProductDTO) => {
     },
   })
 
-  // 自动创建默认 SKU
-  await prisma.sKU.create({
-    data: {
-      productId: product.id,
-      code: `${data.code}-001`,
-      name: '默认规格',
-      price: 0,
-      costPrice: 0,
-    },
-  })
+  // 创建 SKU
+  if (data.skus && data.skus.length > 0) {
+    // 用户提供了 SKU 列表
+    for (let i = 0; i < data.skus.length; i++) {
+      const skuData = data.skus[i]
+      await prisma.sKU.create({
+        data: {
+          productId: product.id,
+          code: skuData.code || `${data.code}-${String(i + 1).padStart(3, '0')}`,
+          name: skuData.name || `${product.name}-规格${i + 1}`,
+          specs: skuData.specs,
+          price: skuData.price || 0,
+          costPrice: skuData.costPrice || 0,
+          barcode: skuData.barcode,
+          warningThreshold: skuData.warningThreshold,
+        },
+      })
+    }
+  } else {
+    // 没有提供 SKU，自动创建默认 SKU
+    await prisma.sKU.create({
+      data: {
+        productId: product.id,
+        code: `${data.code}-001`,
+        name: '默认规格',
+        price: 0,
+        costPrice: 0,
+      },
+    })
+  }
 
   return product
 }

@@ -125,7 +125,12 @@
         data-testid="products-form"
       >
         <el-form-item label="商品编码" prop="code">
-          <el-input v-model="formData.code" placeholder="请输入商品编码" data-testid="product-form-input-code" />
+          <el-input 
+            v-model="formData.code" 
+            placeholder="请输入商品编码" 
+            data-testid="product-form-input-code"
+            @input="updateSKUCodes"
+          />
         </el-form-item>
         
         <el-form-item label="商品名称" prop="name">
@@ -162,6 +167,101 @@
         <el-form-item label="状态" prop="active">
           <el-switch v-model="formData.active" data-testid="product-form-switch-active" />
         </el-form-item>
+        
+        <!-- SKU 配置区域 -->
+        <el-divider content-position="left">SKU 配置（可选）</el-divider>
+        
+        <div v-if="formData.skuList.length > 0" class="sku-create-list">
+          <div v-for="(sku, index) in formData.skuList" :key="index" class="sku-create-item">
+            <el-card shadow="hover" :body-style="{ padding: '12px' }">
+              <div class="sku-item-header">
+                <span class="sku-item-title">SKU {{ index + 1 }}</span>
+                <el-button type="danger" link size="small" @click="removeCreateSKU(index)">
+                  删除
+                </el-button>
+              </div>
+              
+              <el-row :gutter="12">
+                <el-col :span="12">
+                  <el-form-item label="SKU编码" :prop="`skuList.${index}.code`" label-width="80px">
+                    <el-input v-model="sku.code" placeholder="自动生成或手动输入" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="规格名称" :prop="`skuList.${index}.name`" label-width="80px">
+                    <el-input v-model="sku.name" placeholder="如：红色-XL" />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              
+              <el-row :gutter="12">
+                <el-col :span="12">
+                  <el-form-item label="销售价" :prop="`skuList.${index}.price`" label-width="80px">
+                    <el-input-number v-model="sku.price" :min="0" :precision="2" style="width: 100%" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="成本价" :prop="`skuList.${index}.costPrice`" label-width="80px">
+                    <el-input-number v-model="sku.costPrice" :min="0" :precision="2" style="width: 100%" />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              
+              <el-row :gutter="12">
+                <el-col :span="12">
+                  <el-form-item label="条码" label-width="80px">
+                    <el-input v-model="sku.barcode" placeholder="条形码（可选）" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="库存预警" label-width="80px">
+                    <el-input-number v-model="sku.warningThreshold" :min="0" style="width: 100%" />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              
+              <!-- 规格配置 -->
+              <el-form-item label="规格" label-width="80px">
+                <div class="spec-create-list">
+                  <div v-for="(spec, specIndex) in sku.specList" :key="specIndex" class="spec-create-item">
+                    <el-select
+                      v-model="spec.specName"
+                      placeholder="选择或输入规格"
+                      style="width: 130px"
+                      filterable
+                      allow-create
+                      default-first-option
+                      @change="() => updateCreateSKUName(index)"
+                    >
+                      <el-option
+                        v-for="type in activeSpecTypes"
+                        :key="type.id"
+                        :label="type.name"
+                        :value="type.name"
+                      />
+                    </el-select>
+                    <el-input
+                      v-model="spec.specValue"
+                      placeholder="规格值"
+                      style="width: 130px"
+                      @input="() => updateCreateSKUName(index)"
+                    />
+                    <el-button type="danger" link @click="removeCreateSpec(index, specIndex)">
+                      删除
+                    </el-button>
+                  </div>
+                  <el-button type="primary" link size="small" @click="addCreateSpec(index)">
+                    + 添加规格
+                  </el-button>
+                </div>
+              </el-form-item>
+            </el-card>
+          </div>
+        </div>
+        
+        <el-button type="primary" link style="margin-bottom: 16px" @click="addCreateSKU">
+          + 添加 SKU
+        </el-button>
       </el-form>
       
       <template #footer>
@@ -280,8 +380,11 @@
             <div v-for="(spec, index) in skuFormData.specList" :key="index" class="spec-item">
               <el-select
                 v-model="spec.specName"
-                placeholder="选择规格类型"
+                placeholder="选择或输入规格"
                 style="width: 120px"
+                filterable
+                allow-create
+                default-first-option
                 :data-testid="`sku-form-select-spec-name-${index}`"
                 @change="updateSKUName"
               >
@@ -465,6 +568,15 @@ const formData = reactive({
   unit: '台',
   warranty: 12,
   active: true,
+  skuList: [] as Array<{
+    code: string
+    name: string
+    specList: Array<{ specName: string; specValue: string }>
+    price: number
+    costPrice: number
+    barcode: string
+    warningThreshold: number
+  }>,
 })
 
 const rules: FormRules = {
@@ -667,6 +779,65 @@ function handleDialogClosed() {
     unit: '台',
     warranty: 12,
     active: true,
+    skuList: [],
+  })
+}
+
+// =============== 新增商品时的 SKU 管理 ===============
+
+// 添加 SKU
+function addCreateSKU() {
+  const skuIndex = formData.skuList.length
+  formData.skuList.push({
+    code: formData.code ? `${formData.code}-${String(skuIndex + 1).padStart(3, '0')}` : '',
+    name: formData.name || '',
+    specList: [],
+    price: 0,
+    costPrice: 0,
+    barcode: '',
+    warningThreshold: 10,
+  })
+}
+
+// 删除 SKU
+function removeCreateSKU(index: number) {
+  formData.skuList.splice(index, 1)
+}
+
+// 添加规格
+function addCreateSpec(skuIndex: number) {
+  formData.skuList[skuIndex].specList.push({ specName: '', specValue: '' })
+}
+
+// 删除规格
+function removeCreateSpec(skuIndex: number, specIndex: number) {
+  formData.skuList[skuIndex].specList.splice(specIndex, 1)
+  updateCreateSKUName(skuIndex)
+}
+
+// 更新 SKU 名称（基于规格）
+function updateCreateSKUName(skuIndex: number) {
+  const sku = formData.skuList[skuIndex]
+  const specValues = sku.specList
+    .filter(s => s.specName && s.specValue)
+    .map(s => s.specValue)
+    .join('-')
+  
+  if (specValues) {
+    sku.name = `${formData.name}-${specValues}`
+  } else {
+    sku.name = formData.name || ''
+  }
+}
+
+// 当商品编码改变时，更新所有 SKU 编码前缀
+function updateSKUCodes() {
+  if (!formData.code) return
+  formData.skuList.forEach((sku, index) => {
+    if (!sku.code || sku.code.startsWith(formData.code)) {
+      // 自动生成或更新编码
+      sku.code = `${formData.code}-${String(index + 1).padStart(3, '0')}`
+    }
   })
 }
 
@@ -679,13 +850,39 @@ async function handleSubmit() {
     
     submitLoading.value = true
     try {
-      const submitData = {
+      // 准备 SKU 数据
+      const skus = formData.skuList.map((sku, index) => {
+        // 构建规格对象
+        const specs: Record<string, string> = {}
+        for (const spec of sku.specList) {
+          if (spec.specName && spec.specValue) {
+            specs[spec.specName] = spec.specValue
+          }
+        }
+        
+        return {
+          code: sku.code || `${formData.code}-${String(index + 1).padStart(3, '0')}`,
+          name: sku.name || formData.name,
+          specs: Object.keys(specs).length > 0 ? JSON.stringify(specs) : undefined,
+          price: sku.price,
+          costPrice: sku.costPrice,
+          barcode: sku.barcode || undefined,
+          warningThreshold: sku.warningThreshold,
+        }
+      })
+      
+      const submitData: any = {
         code: formData.code,
         name: formData.name,
         categoryName: formData.categoryName,
         unit: formData.unit,
         warranty: formData.warranty,
         active: formData.active,
+      }
+      
+      // 如果有 SKU，添加到提交数据
+      if (skus.length > 0) {
+        submitData.skus = skus
       }
       
       if (editId.value) {
@@ -951,6 +1148,36 @@ onMounted(() => {
   
   .spec-list {
     .spec-item {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+  }
+  
+  // 新增商品时的 SKU 配置样式
+  .sku-create-list {
+    margin-bottom: 12px;
+    
+    .sku-create-item {
+      margin-bottom: 12px;
+      
+      .sku-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        
+        .sku-item-title {
+          font-weight: 500;
+          color: #409eff;
+        }
+      }
+    }
+  }
+  
+  .spec-create-list {
+    .spec-create-item {
       display: flex;
       gap: 8px;
       align-items: center;
