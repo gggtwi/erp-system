@@ -213,6 +213,12 @@ export const createSale = async (data: CreateSaleDTO, operatorId: number) => {
 
   const totalAmount = itemsWithAmount.reduce((sum, item) => sum + item.amount, 0)
   const discountAmount = data.discountAmount || 0
+  
+  // 校验折扣金额
+  if (discountAmount > totalAmount) {
+    throw new AppError(400, `折扣金额不能超过订单总额 ${totalAmount.toFixed(2)}`)
+  }
+  
   const finalAmount = totalAmount - discountAmount
   const paidAmount = data.paidAmount || 0
   const debtAmount = Math.max(0, finalAmount - paidAmount)
@@ -404,6 +410,12 @@ export const createDraftSale = async (data: CreateSaleDTO, operatorId: number) =
 
   const totalAmount = itemsWithAmount.reduce((sum, item) => sum + item.amount, 0)
   const discountAmount = data.discountAmount || 0
+  
+  // 校验折扣金额
+  if (discountAmount > totalAmount) {
+    throw new AppError(400, `折扣金额不能超过订单总额 ${totalAmount.toFixed(2)}`)
+  }
+  
   const finalAmount = totalAmount - discountAmount
   const paidAmount = data.paidAmount || 0
   const debtAmount = Math.max(0, finalAmount - paidAmount)

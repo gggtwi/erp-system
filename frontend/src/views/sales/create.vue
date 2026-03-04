@@ -222,6 +222,7 @@
                 <el-input-number
                   v-model="discountAmount"
                   :min="0"
+                  :max="cartStore.totalAmount"
                   :precision="2"
                   controls-position="right"
                   style="width: 150px"
