@@ -41,3 +41,18 @@ export function getPayments(params?: { customerId?: number }) {
 export function getCustomerDebt(customerId: number) {
   return request.get(`/finance/customers/${customerId}/debt`)
 }
+
+// 应收账款统计
+export function getReceivableStats() {
+  return request.get<{
+    totalAmount: number
+    totalPaid: number
+    totalRemaining: number
+    debtCustomerCount: number
+    byStatus: {
+      unpaid: { count: number; amount: number }
+      partial: { count: number; amount: number }
+      paid: { count: number; amount: number }
+    }
+  }>('/finance/receivables/stats')
+}

@@ -195,7 +195,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getReceivables, createPayment } from '@/api/finance'
+import { getReceivables, createPayment, getReceivableStats } from '@/api/finance'
 import dayjs from 'dayjs'
 
 // 搜索表单
@@ -266,18 +266,21 @@ function formatTime(time: string) {
 async function fetchData() {
   loading.value = true
   try {
-    const result = await getReceivables({
-      ...searchForm,
-      ...pagination,
-    })
+    const [result, statsResult] = await Promise.all([
+      getReceivables({
+        ...searchForm,
+        ...pagination,
+      }),
+      getReceivableStats(),
+    ])
     tableData.value = result.list
     pagination.total = result.total
     
-    // 更新统计
-    stats.totalAmount = result.list.reduce((sum: number, item: any) => sum + Number(item.amount), 0)
-    stats.paidAmount = result.list.reduce((sum: number, item: any) => sum + Number(item.paidAmount), 0)
-    stats.debtAmount = stats.totalAmount - stats.paidAmount
-    stats.customerCount = new Set(result.list.map((item: any) => item.customerId)).size
+    // 更新统计（从后端获取全量数据）
+    stats.totalAmount = statsResult.totalAmount
+    stats.paidAmount = statsResult.totalPaid
+    stats.debtAmount = statsResult.totalRemaining
+    stats.customerCount = statsResult.debtCustomerCount
   } catch (error) {
     console.error(error)
   } finally {

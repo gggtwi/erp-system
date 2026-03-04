@@ -291,6 +291,15 @@ export const getReceivableStats = async () => {
   const totalPaid = receivables.reduce((sum, r) => sum + r.paidAmount, 0)
   const totalRemaining = totalAmount - totalPaid
 
+  // 统计欠款客户数（有未结清应收账款的客户）
+  const debtCustomerIds = new Set<number>()
+  for (const r of receivables) {
+    if (r.status === 'unpaid' || r.status === 'partial') {
+      debtCustomerIds.add(r.customerId)
+    }
+  }
+  const debtCustomerCount = debtCustomerIds.size
+
   const byStatus = {
     unpaid: { count: 0, amount: 0 },
     partial: { count: 0, amount: 0 },
@@ -306,6 +315,7 @@ export const getReceivableStats = async () => {
     totalAmount,
     totalPaid,
     totalRemaining,
+    debtCustomerCount,
     byStatus,
   }
 }
