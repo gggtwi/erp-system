@@ -32,7 +32,7 @@
           </div>
         </el-col>
         <el-col :span="6">
-          <div data-testid="receivables-stat-paid">
+          <div data-testid="receivables-stat-received">
             <el-statistic title="已收款" :value="stats.paidAmount" :precision="2">
               <template #prefix>¥</template>
             </el-statistic>

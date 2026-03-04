@@ -45,8 +45,8 @@ test.describe('报表分析模块', () => {
     await page.waitForLoadState('networkidle');
     
     // 设置日期范围为一周
-    // 点击日期选择器
-    await page.getByTestId('reports-date-range').click({ timeout: 10000 });
+    // 点击日期选择器内的 input
+    await page.locator('[data-testid="reports-date-range"] input').first().click({ timeout: 10000 });
     await page.waitForSelector('.el-picker-panel');
     
     // 选择日期范围（简化处理）
@@ -112,8 +112,8 @@ test.describe('报表分析模块', () => {
     await page.goto('/reports/sales');
     await page.waitForLoadState('networkidle');
     
-    // 点击日期选择器
-    await page.getByTestId('reports-date-range').click({ timeout: 10000 });
+    // 点击日期选择器内的 input
+    await page.locator('[data-testid="reports-date-range"] input').first().click({ timeout: 10000 });
     await page.waitForSelector('.el-picker-panel');
     
     // 选择自定义日期范围
@@ -134,7 +134,7 @@ test.describe('报表分析模块', () => {
     await page.waitForLoadState('networkidle');
     
     // 设置一个很早的日期范围
-    await page.getByTestId('reports-date-range').click({ timeout: 10000 });
+    await page.locator('[data-testid="reports-date-range"] input').first().click({ timeout: 10000 });
     await page.waitForSelector('.el-picker-panel');
     
     // 简化：直接点击查询
@@ -211,8 +211,8 @@ test.describe('报表分析模块', () => {
     await waitForTableLoad(page);
     await page.waitForLoadState('networkidle');
     
-    // 使用 data-testid 选择分类筛选
-    await page.getByTestId('products-cascader-category').click({ timeout: 10000 });
+    // 使用 data-testid 选择分类筛选内的 input
+    await page.locator('[data-testid="products-cascader-category"] input').click({ timeout: 10000 });
     await page.waitForSelector('.el-cascader__dropdown');
     
     // 选择第一个分类

@@ -3,16 +3,17 @@
     <el-card data-testid="sales-report-card">
       <!-- 筛选条件 -->
       <div class="filter-bar" data-testid="sales-report-filter-bar">
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          value-format="YYYY-MM-DD"
-          style="width: 300px"
-          data-testid="reports-date-range"
-        />
+        <div data-testid="reports-date-range">
+          <el-date-picker
+            v-model="dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="YYYY-MM-DD"
+            style="width: 300px"
+          />
+        </div>
         
         <el-button type="primary" data-testid="reports-btn-query" @click="fetchData">查询</el-button>
         <el-button data-testid="reports-btn-export" @click="handleExport">导出</el-button>

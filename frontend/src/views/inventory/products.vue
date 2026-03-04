@@ -12,15 +12,16 @@
           @keyup.enter="handleSearch"
         />
         
-        <el-cascader
-          v-model="searchForm.categoryId"
-          :options="categoryTree"
-          :props="{ value: 'id', label: 'name', checkStrictly: true, emitPath: false }"
-          placeholder="分类"
-          clearable
-          style="width: 200px"
-          data-testid="products-cascader-category"
-        />
+        <div data-testid="products-cascader-category">
+          <el-cascader
+            v-model="searchForm.categoryId"
+            :options="categoryTree"
+            :props="{ value: 'id', label: 'name', checkStrictly: true, emitPath: false }"
+            placeholder="分类"
+            clearable
+            style="width: 200px"
+          />
+        </div>
         
         <el-select v-model="searchForm.active" placeholder="状态" clearable style="width: 120px" data-testid="products-select-status">
           <el-option label="启用" :value="true" />
