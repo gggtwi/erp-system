@@ -28,7 +28,7 @@ test.describe('财务管理模块', () => {
     
     // 使用 data-testid 验证统计卡片
     await expect(page.getByTestId('receivables-stat-total')).toBeVisible();
-    await expect(page.getByTestId('receivables-stat-paid')).toBeVisible();
+    await expect(page.getByTestId('receivables-stat-received')).toBeVisible();
     await expect(page.getByTestId('receivables-stat-debt')).toBeVisible();
     await expect(page.getByTestId('receivables-stat-customers')).toBeVisible();
   });
@@ -390,7 +390,7 @@ test.describe('财务管理模块', () => {
     
     // 使用 data-testid 验证统计卡片标题
     await expect(page.getByTestId('receivables-stat-total')).toContainText('应收总额');
-    await expect(page.getByTestId('receivables-stat-paid')).toContainText('已收款');
+    await expect(page.getByTestId('receivables-stat-received')).toContainText('已收款');
     await expect(page.getByTestId('receivables-stat-debt')).toContainText('欠款金额');
     await expect(page.getByTestId('receivables-stat-customers')).toContainText('欠款客户');
   });
