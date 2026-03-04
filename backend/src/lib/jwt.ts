@@ -7,9 +7,10 @@ interface JwtPayload {
 }
 
 export const generateToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, process.env.JWT_SECRET || 'secret', {
-    expiresIn: process.env.JWT_EXPIRES_IN || '24h',
-  })
+  const secret = process.env.JWT_SECRET || 'secret'
+  const expiresIn = process.env.JWT_EXPIRES_IN || '24h'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return jwt.sign(payload, secret, { expiresIn: expiresIn as any })
 }
 
 export const verifyToken = (token: string): JwtPayload | null => {

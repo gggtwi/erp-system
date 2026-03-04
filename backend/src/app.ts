@@ -20,8 +20,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
-// API 路由 (后续添加)
-// app.use('/api/auth', authRoutes)
+// API 路由
+import authRoutes from './routes/auth'
+app.use('/api/auth', authRoutes)
 // app.use('/api/products', productRoutes)
 // ...
 
