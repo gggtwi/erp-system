@@ -79,6 +79,12 @@ const router = createRouter({
           component: () => import('@/views/reports/sales.vue'),
           meta: { title: '销售报表' },
         },
+        {
+          path: 'system/users',
+          name: 'Users',
+          component: () => import('@/views/system/users/index.vue'),
+          meta: { title: '用户管理' },
+        },
       ],
     },
   ],

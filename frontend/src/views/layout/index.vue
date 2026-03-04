@@ -50,6 +50,14 @@
           <el-icon><DataAnalysis /></el-icon>
           <span>销售报表</span>
         </el-menu-item>
+        
+        <el-sub-menu index="system" data-testid="nav-menu-system">
+          <template #title>
+            <el-icon><Setting /></el-icon>
+            <span>系统管理</span>
+          </template>
+          <el-menu-item index="/system/users" data-testid="nav-menu-users">用户管理</el-menu-item>
+        </el-sub-menu>
       </el-menu>
     </el-aside>
     
