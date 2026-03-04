@@ -313,7 +313,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, h } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getProducts, getCategories, createProduct, updateProduct, deleteProduct, getProduct } from '@/api/product'
@@ -512,9 +512,41 @@ async function handleDetail(row: Product) {
 // 删除
 async function handleDelete(row: Product) {
   try {
-    await ElMessageBox.confirm('确定要删除该商品吗？', '提示', {
-      type: 'warning',
-    })
+    // 如果商品有 SKU，显示 SKU 信息确认框
+    if (row.skus && row.skus.length > 0) {
+      const skuList = row.skus.map(sku => 
+        `• ${sku.name} (编码: ${sku.code}, 售价: ¥${sku.price})`
+      ).join('\n')
+      
+      await ElMessageBox.confirm(
+        h('div', [
+          h('p', { style: 'margin-bottom: 12px; color: #E6A23C;' }, 
+            `该商品包含 ${row.skus.length} 个 SKU，删除后相关库存数据将丢失：`
+          ),
+          h('div', { 
+            style: 'max-height: 200px; overflow-y: auto; padding: 12px; background: #f5f7fa; border-radius: 4px; font-size: 13px; line-height: 1.8;' 
+          }, row.skus.map(sku => 
+            h('div', { style: 'padding: 4px 0; border-bottom: 1px dashed #ddd;' }, [
+              h('span', { style: 'font-weight: 500;' }, sku.name),
+              h('span', { style: 'color: #909399; margin-left: 8px;' }, `编码: ${sku.code}`),
+              h('span', { style: 'color: #67C23A; margin-left: 8px;' }, `¥${sku.price}`),
+              sku.inventory && h('span', { style: 'color: #F56C6C; margin-left: 8px;' }, `库存: ${sku.inventory.quantity}`)
+            ])
+          ))
+        ]),
+        '确认删除商品',
+        {
+          confirmButtonText: '确定删除',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      )
+    } else {
+      await ElMessageBox.confirm('确定要删除该商品吗？', '提示', {
+        type: 'warning',
+      })
+    }
+    
     await deleteProduct(row.id)
     ElMessage.success('删除成功')
     fetchData()
