@@ -30,6 +30,19 @@ export interface CreateProductDTO {
   skus?: CreateSKUDTO[]
 }
 
+export interface UpdateSKUDTO {
+  id?: number          // 有 id 表示更新，无 id 表示新增
+  code: string
+  name: string
+  specs?: string
+  price: number
+  costPrice: number
+  barcode?: string
+  warningThreshold?: number
+  active?: boolean
+  _delete?: boolean    // 标记删除
+}
+
 export interface UpdateProductDTO {
   name?: string
   categoryId?: number
@@ -38,6 +51,7 @@ export interface UpdateProductDTO {
   unit?: string
   warranty?: number
   active?: boolean
+  skus?: UpdateSKUDTO[]  // SKU 列表（支持增删改）
 }
 
 export const getProductList = async (query: ProductQuery) => {
@@ -224,6 +238,7 @@ export const createProduct = async (data: CreateProductDTO) => {
 export const updateProduct = async (id: number, data: UpdateProductDTO) => {
   const product = await prisma.product.findUnique({
     where: { id },
+    include: { skus: true },
   })
 
   if (!product) {
@@ -263,18 +278,117 @@ export const updateProduct = async (id: number, data: UpdateProductDTO) => {
     }
   }
 
+  // 准备更新数据
   const updateData: any = { ...data }
   if (categoryId) {
     updateData.categoryId = categoryId
   }
-  // 删除 categoryName，因为不是数据库字段
+  // 删除 categoryName 和 skus，单独处理
   delete updateData.categoryName
+  delete updateData.skus
 
+  // 处理 SKU 更新
+  if (data.skus && data.skus.length > 0) {
+    const existingSkuIds = new Set(product.skus.map(s => s.id))
+    const existingSkuCodes = new Set(product.skus.map(s => s.code))
+    
+    // 分类 SKU 操作
+    const skusToCreate: any[] = []
+    const skusToUpdate: { where: { id: number }; data: any }[] = []
+    const skusToDelete: { id: number }[] = []
+
+    for (const sku of data.skus) {
+      if (sku._delete && sku.id) {
+        // 标记删除
+        skusToDelete.push({ id: sku.id })
+      } else if (sku.id && existingSkuIds.has(sku.id)) {
+        // 更新现有 SKU
+        const { id, _delete, ...skuData } = sku
+        skusToUpdate.push({
+          where: { id: sku.id! },
+          data: skuData,
+        })
+      } else if (!sku.id) {
+        // 新增 SKU - 检查编码是否已被其他商品使用
+        const existingSku = await prisma.sKU.findUnique({
+          where: { code: sku.code },
+        })
+        
+        if (existingSku && existingSku.productId !== id) {
+          throw new AppError(400, `SKU 编码 "${sku.code}" 已被其他商品使用`)
+        }
+        
+        // 如果编码存在于当前商品，按更新处理
+        if (existingSku && existingSku.productId === id) {
+          const { id: skuId, _delete, ...skuData } = sku
+          skusToUpdate.push({
+            where: { id: existingSku.id },
+            data: skuData,
+          })
+        } else {
+          const { id, _delete, ...skuData } = sku
+          skusToCreate.push(skuData)
+        }
+      }
+    }
+
+    // 使用事务执行更新
+    const updated = await prisma.$transaction(async (tx) => {
+      // 更新商品基本信息
+      await tx.product.update({
+        where: { id },
+        data: updateData,
+      })
+
+      // 删除标记的 SKU
+      for (const skuToDelete of skusToDelete) {
+        await tx.sKU.delete({
+          where: { id: skuToDelete.id },
+        })
+      }
+
+      // 更新现有 SKU
+      for (const updateOp of skusToUpdate) {
+        await tx.sKU.update(updateOp)
+      }
+
+      // 创建新 SKU
+      for (const newSku of skusToCreate) {
+        await tx.sKU.create({
+          data: {
+            productId: id,
+            code: newSku.code,
+            name: newSku.name,
+            specs: newSku.specs,
+            price: newSku.price,
+            costPrice: newSku.costPrice,
+            barcode: newSku.barcode,
+            warningThreshold: newSku.warningThreshold,
+            active: newSku.active ?? true,
+          },
+        })
+      }
+
+      // 重新获取更新后的商品（包含所有 SKU）
+      return await tx.product.findUnique({
+        where: { id },
+        include: {
+          category: true,
+          skus: true,
+        },
+      })
+    })
+
+    return updated
+  }
+
+  // 没有 SKU 更新，直接更新商品
   const updated = await prisma.product.update({
     where: { id },
     data: updateData,
     include: {
       category: true,
+      skus: true,
     },
   })
 
