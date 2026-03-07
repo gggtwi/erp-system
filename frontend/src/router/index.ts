@@ -85,6 +85,12 @@ const router = createRouter({
           component: () => import('@/views/system/users/index.vue'),
           meta: { title: '用户管理' },
         },
+        {
+          path: 'system/settings',
+          name: 'Settings',
+          component: () => import('@/views/system/settings.vue'),
+          meta: { title: '系统设置' },
+        },
       ],
     },
   ],

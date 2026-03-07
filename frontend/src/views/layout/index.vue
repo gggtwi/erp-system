@@ -57,6 +57,7 @@
             <span>系统管理</span>
           </template>
           <el-menu-item index="/system/users" data-testid="nav-menu-users">用户管理</el-menu-item>
+          <el-menu-item index="/system/settings" data-testid="nav-menu-settings">系统设置</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-aside>
