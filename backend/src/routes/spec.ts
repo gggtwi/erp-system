@@ -16,6 +16,9 @@ router.get('/:id', authMiddleware, specController.getById)
 // 创建规格类型（仅管理员）
 router.post('/', authMiddleware, rbacMiddleware(['admin']), specController.create)
 
+// 批量更新排序（仅管理员）
+router.put('/reorder', authMiddleware, rbacMiddleware(['admin']), specController.reorder)
+
 // 更新规格类型（仅管理员）
 router.put('/:id', authMiddleware, rbacMiddleware(['admin']), specController.update)
 

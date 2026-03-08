@@ -83,3 +83,19 @@ export const getActive = async (req: Request, res: Response, next: NextFunction)
     next(error)
   }
 }
+
+// 批量更新排序
+export const reorder = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { ids } = req.body
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return fail(res, 400, '无效的规格类型ID列表')
+    }
+
+    await specService.reorderSpecTypes(ids)
+    return success(res, null, '排序已更新')
+  } catch (error) {
+    next(error)
+  }
+}

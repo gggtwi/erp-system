@@ -84,7 +84,7 @@
         </div>
         
         <div class="right">
-          <el-dropdown @command="handleCommand" data-testid="layout-user-dropdown">
+          <el-dropdown @command="handleCommand" data-testid="user-dropdown">
             <span class="user-info">
               <el-avatar :size="32" icon="UserFilled" />
               <span class="username">{{ userStore.username }}</span>
@@ -94,7 +94,7 @@
               <el-dropdown-menu>
                 <el-dropdown-item command="profile" data-testid="dropdown-item-profile">个人信息</el-dropdown-item>
                 <el-dropdown-item command="password" data-testid="dropdown-item-password">修改密码</el-dropdown-item>
-                <el-dropdown-item divided command="logout" data-testid="dropdown-item-logout">退出登录</el-dropdown-item>
+                <el-dropdown-item divided command="logout" data-testid="logout-btn">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>

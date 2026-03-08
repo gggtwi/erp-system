@@ -588,23 +588,27 @@ export const getInventoryStats = async (defaultThreshold = 10): Promise<Inventor
   // SKU 总数
   const totalSkus = await prisma.sKU.count({ where: { active: true } })
   
-  // 库存预警数量 - 基于每个 SKU 自己的预警阈值
-  const inventories = await prisma.inventory.findMany({
+  // 获取所有活跃 SKU 及其库存信息（包括没有库存记录的 SKU）
+  const skus = await prisma.sKU.findMany({
+    where: { active: true },
     include: {
-      sku: { select: { warningThreshold: true, costPrice: true } },
+      inventory: true,
+      product: true,
     },
   })
   
-  // 计算预警数量和库存总值
+  // 计算预警数量和库存总值 - 包含没有库存记录的 SKU（默认数量为 0）
   let warningCount = 0
   let totalValue = 0
   
-  for (const inv of inventories) {
-    const threshold = inv.sku?.warningThreshold || defaultThreshold
-    if (inv.quantity <= threshold) {
+  for (const sku of skus) {
+    const quantity = sku.inventory?.quantity || 0
+    const threshold = sku.warningThreshold || defaultThreshold
+    // 预警条件：库存数量 <= 预警阈值（低库存或缺货）
+    if (quantity <= threshold) {
       warningCount++
     }
-    totalValue += inv.quantity * (inv.sku?.costPrice || 0)
+    totalValue += quantity * (sku.costPrice || 0)
   }
   
   return {

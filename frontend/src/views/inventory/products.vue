@@ -30,7 +30,7 @@
         
         <el-button type="primary" data-testid="products-btn-search" @click="handleSearch">搜索</el-button>
         <el-button data-testid="products-btn-refresh" @click="handleRefresh">刷新</el-button>
-        <el-button type="primary" data-testid="products-btn-add" @click="handleAdd">新增商品</el-button>
+        <el-button type="primary" data-testid="add-product-btn" @click="handleAdd">新增商品</el-button>
       </div>
       
       <!-- 表格 -->
@@ -134,7 +134,7 @@
         </el-form-item>
         
         <el-form-item label="商品名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入商品名称" data-testid="product-form-input-name" />
+          <el-input v-model="formData.name" placeholder="请输入商品名称" data-testid="product-name-input" />
         </el-form-item>
         
         <el-form-item label="分类" prop="categoryName">
@@ -413,7 +413,7 @@
         </el-form-item>
         
         <el-form-item label="销售价" prop="price">
-          <el-input-number v-model="skuFormData.price" :min="0" :precision="2" style="width: 200px" data-testid="sku-form-input-price" />
+          <el-input-number v-model="skuFormData.price" :min="0" :precision="2" style="width: 200px" data-testid="product-price-input" />
         </el-form-item>
         
         <el-form-item label="成本价" prop="costPrice">

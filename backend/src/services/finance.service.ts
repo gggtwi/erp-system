@@ -404,13 +404,21 @@ export const createPayment = async (data: CreatePaymentDTO, operatorId: number) 
     if (newStatus === 'paid') {
       await tx.sale.update({
         where: { id: receivable.saleId },
-        data: { paymentStatus: 'paid' },
+        data: { 
+          paymentStatus: 'paid',
+          paidAmount: receivable.amount,  // 已付金额 = 应收账款总额
+          debtAmount: 0,  // 欠款金额 = 0
+        },
       })
     } else {
-      // 部分支付，更新为 partial
+      // 部分支付，更新为 partial，同时更新已付金额和欠款金额
       await tx.sale.update({
         where: { id: receivable.saleId },
-        data: { paymentStatus: 'partial' },
+        data: { 
+          paymentStatus: 'partial',
+          paidAmount: newPaidAmount,  // 更新已付金额
+          debtAmount: receivable.amount - newPaidAmount,  // 更新欠款金额
+        },
       })
     }
 

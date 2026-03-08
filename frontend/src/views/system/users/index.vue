@@ -7,7 +7,7 @@
           <el-button
             v-if="canCreateUser"
             type="primary"
-            data-testid="user-btn-create"
+            data-testid="add-user-btn"
             @click="handleOpenCreateDialog"
           >
             新增用户
@@ -72,16 +72,34 @@
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button
               type="primary"
               link
               size="small"
-              data-testid="user-btn-change-password"
+              data-testid="edit-btn"
+              @click="handleEditUser(row)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              type="danger"
+              link
+              size="small"
+              data-testid="delete-btn"
+              @click="handleDeleteUser(row)"
+            >
+              删除
+            </el-button>
+            <el-button
+              type="warning"
+              link
+              size="small"
+              data-testid="reset-password-btn"
               @click="handleOpenPasswordDialog(row)"
             >
-              修改密码
+              重置密码
             </el-button>
           </template>
         </el-table-column>
@@ -114,18 +132,18 @@
           <el-input
             v-model="createForm.username"
             placeholder="请输入用户名"
-            data-testid="create-form-input-username"
+            data-testid="username-input"
           />
         </el-form-item>
         <el-form-item label="姓名" prop="name">
           <el-input
             v-model="createForm.name"
             placeholder="请输入姓名"
-            data-testid="create-form-input-name"
+            data-testid="realname-input"
           />
         </el-form-item>
         <el-form-item label="角色" prop="role">
-          <el-select v-model="createForm.role" placeholder="请选择角色" style="width: 100%" data-testid="create-form-select-role">
+          <el-select v-model="createForm.role" placeholder="请选择角色" style="width: 100%" data-testid="role-select">
             <el-option
               v-for="role in creatableRoles"
               :key="role"
@@ -140,7 +158,7 @@
             type="password"
             placeholder="请输入密码（至少6位）"
             show-password
-            data-testid="create-form-input-password"
+            data-testid="password-input"
           />
         </el-form-item>
         <el-form-item label="确认密码" prop="confirmPassword">
@@ -170,7 +188,7 @@
       </el-form>
       <template #footer>
         <el-button data-testid="create-dialog-btn-cancel" @click="createDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" data-testid="create-dialog-btn-submit" @click="handleSubmitCreate">确定</el-button>
+        <el-button type="primary" :loading="submitting" data-testid="submit-btn" @click="handleSubmitCreate">确定</el-button>
       </template>
     </el-dialog>
 
@@ -201,7 +219,7 @@
             type="password"
             placeholder="请输入新密码（至少6位）"
             show-password
-            data-testid="password-form-input-new"
+            data-testid="new-password-input"
           />
         </el-form-item>
         <el-form-item label="确认密码" prop="confirmPassword">
@@ -219,6 +237,21 @@
         <el-button type="primary" :loading="submitting" data-testid="password-dialog-btn-submit" @click="handleSubmitPassword">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 删除用户确认弹窗 -->
+    <el-dialog
+      v-model="deleteDialogVisible"
+      title="删除用户"
+      width="400px"
+      destroy-on-close
+      data-testid="delete-dialog"
+    >
+      <p>确定要删除用户 <strong>{{ currentUser?.username }}</strong> 吗？此操作不可恢复。</p>
+      <template #footer>
+        <el-button data-testid="confirm-delete-btn-cancel" @click="deleteDialogVisible = false">取消</el-button>
+        <el-button type="danger" :loading="submitting" data-testid="confirm-delete-btn" @click="handleConfirmDelete">确定删除</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -226,7 +259,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
-import { getUsers, changeUserPassword, createUser, getCreatableRoles, type User, type UserQuery, type CreateUserParams } from '@/api/user'
+import { getUsers, changeUserPassword, createUser, deleteUser, getCreatableRoles, type User, type UserQuery, type CreateUserParams } from '@/api/user'
 import type { FormInstance, FormRules } from 'element-plus'
 
 const userStore = useUserStore()
@@ -313,6 +346,9 @@ const passwordForm = reactive({
   newPassword: '',
   confirmPassword: '',
 })
+
+// 删除用户相关
+const deleteDialogVisible = ref(false)
 
 // 判断是否需要输入旧密码
 const needOldPassword = computed(() => {
@@ -457,6 +493,35 @@ async function handleSubmitPassword() {
     passwordDialogVisible.value = false
   } catch (error: any) {
     ElMessage.error(error.message || '密码修改失败')
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 编辑用户
+function handleEditUser(user: User) {
+  // TODO: 实现编辑用户功能
+  ElMessage.info('编辑用户: ' + user.username)
+}
+
+// 删除用户
+function handleDeleteUser(user: User) {
+  currentUser.value = user
+  deleteDialogVisible.value = true
+}
+
+// 确认删除用户
+async function handleConfirmDelete() {
+  if (!currentUser.value) return
+
+  submitting.value = true
+  try {
+    await deleteUser(currentUser.value.id)
+    ElMessage.success('用户删除成功')
+    deleteDialogVisible.value = false
+    fetchUsers()
+  } catch (error: any) {
+    ElMessage.error(error.message || '用户删除失败')
   } finally {
     submitting.value = false
   }

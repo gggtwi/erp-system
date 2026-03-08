@@ -6,13 +6,31 @@ export const getList = async (req: Request, res: Response, next: NextFunction) =
   try {
     const { keyword, categoryId, active, page = 1, pageSize = 20 } = req.query
 
-    const result = await productService.getProductList({
-      keyword: keyword as string,
-      categoryId: categoryId ? parseInt(categoryId as string) : undefined,
-      active: active === 'true' ? true : active === 'false' ? false : undefined,
+    // 修复：只传递有有效值的搜索参数，避免空字符串导致搜索不生效
+    const queryParams: any = {
       page: parseInt(page as string) || 1,
       pageSize: parseInt(pageSize as string) || 20,
-    })
+    }
+
+    // 处理 keyword：只有非空字符串才传递
+    if (keyword && typeof keyword === 'string' && keyword.trim() !== '') {
+      queryParams.keyword = keyword.trim()
+    }
+
+    // 处理 categoryId：只有有效数字才传递
+    if (categoryId) {
+      const parsedCategoryId = parseInt(categoryId as string)
+      if (!isNaN(parsedCategoryId)) {
+        queryParams.categoryId = parsedCategoryId
+      }
+    }
+
+    // 处理 active：只有明确传递 "true" 或 "false" 时才传递
+    if (active === 'true' || active === 'false') {
+      queryParams.active = active === 'true'
+    }
+
+    const result = await productService.getProductList(queryParams)
 
     return success(res, result)
   } catch (error) {

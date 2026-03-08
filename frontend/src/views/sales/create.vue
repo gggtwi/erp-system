@@ -39,7 +39,7 @@
                   placeholder="选择规格"
                   size="small"
                   style="width: 100%"
-                  :data-testid="`sales-create-select-sku-${row.id}`"
+                  data-testid="product-select"
                 >
                   <el-option
                     v-for="sku in row.skus"
@@ -79,7 +79,7 @@
                   type="primary"
                   size="small"
                   :disabled="!row.selectedSkuId && (!row.skus || row.skus.length === 0)"
-                  :data-testid="`sales-create-btn-add-${row.id}`"
+                  data-testid="add-product-to-order"
                   @click="handleAddToCart(row)"
                 >
                   添加
@@ -128,7 +128,7 @@
                 filterable
                 clearable
                 style="width: 250px"
-                data-testid="sales-create-select-customer"
+                data-testid="customer-select"
               >
                 <el-option
                   v-for="customer in customerList"
@@ -178,7 +178,7 @@
                   size="small"
                   controls-position="right"
                   style="width: 80px"
-                  :data-testid="`cart-input-qty-${row.sku.id}`"
+                  data-testid="quantity-input"
                 />
               </template>
             </el-table-column>
@@ -254,7 +254,7 @@
               style="width: 100%; margin-top: 20px"
               :loading="submitting"
               :disabled="cartStore.items.length === 0 || !selectedCustomerId"
-              data-testid="sales-create-btn-submit"
+              data-testid="submit-order-btn"
               @click="handleSubmit"
             >
               提交订单

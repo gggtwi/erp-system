@@ -367,6 +367,9 @@ async function handlePayment() {
     
     // 刷新订单详情
     await fetchData()
+    
+    // 通知订单列表页面刷新数据
+    window.dispatchEvent(new Event('payment-updated'))
   } catch (error: any) {
     ElMessage.error(error.message || '收款失败')
   } finally {

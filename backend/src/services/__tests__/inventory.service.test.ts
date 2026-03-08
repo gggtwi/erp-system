@@ -470,6 +470,110 @@ describe('Inventory Warning', () => {
   })
 })
 
+describe('getInventoryStats', () => {
+  let testCategory: any
+  let testProduct: any
+  let testSKUWithInventory: any // SKU with inventory record, quantity > threshold
+  let testSKUOutOfStock: any // SKU without inventory record (quantity = 0)
+  let testSKULowStock: any // SKU with inventory, quantity <= threshold
+
+  beforeAll(async () => {
+    testCategory = await prisma.category.create({
+      data: { name: '测试分类-统计', sort: 0 },
+    })
+
+    testProduct = await prisma.product.create({
+      data: {
+        code: 'PROD-STATS-001',
+        name: '测试商品-统计',
+        categoryId: testCategory.id,
+        unit: '台',
+      },
+    })
+
+    // SKU with inventory, quantity > threshold (not a warning)
+    testSKUWithInventory = await prisma.sKU.create({
+      data: {
+        productId: testProduct.id,
+        code: 'SKU-STATS-NORMAL',
+        name: '测试SKU-正常库存',
+        price: 2999,
+        costPrice: 2000,
+        warningThreshold: 10,
+      },
+    })
+    await prisma.inventory.create({
+      data: {
+        skuId: testSKUWithInventory.id,
+        quantity: 100,
+      },
+    })
+
+    // SKU without inventory record (quantity = 0, should be a warning)
+    testSKUOutOfStock = await prisma.sKU.create({
+      data: {
+        productId: testProduct.id,
+        code: 'SKU-STATS-OUT',
+        name: '测试SKU-缺货',
+        price: 1999,
+        costPrice: 1000,
+        warningThreshold: 10,
+      },
+    })
+    // No inventory record - quantity defaults to 0
+
+    // SKU with inventory, quantity <= threshold (low stock warning)
+    testSKULowStock = await prisma.sKU.create({
+      data: {
+        productId: testProduct.id,
+        code: 'SKU-STATS-LOW',
+        name: '测试SKU-低库存',
+        price: 999,
+        costPrice: 500,
+        warningThreshold: 10,
+      },
+    })
+    await prisma.inventory.create({
+      data: {
+        skuId: testSKULowStock.id,
+        quantity: 5,
+      },
+    })
+  })
+
+  afterAll(async () => {
+    await prisma.inventoryLog.deleteMany({
+      where: { skuId: { in: [testSKUWithInventory.id, testSKULowStock.id] } },
+    })
+    await prisma.inventory.deleteMany({
+      where: { skuId: { in: [testSKUWithInventory.id, testSKULowStock.id] } },
+    })
+    await prisma.sKU.deleteMany({
+      where: { id: { in: [testSKUWithInventory.id, testSKUOutOfStock.id, testSKULowStock.id] } },
+    })
+    await prisma.product.delete({ where: { id: testProduct.id } })
+    await prisma.category.delete({ where: { id: testCategory.id } })
+  })
+
+  it('should count warnings including SKUs without inventory records', async () => {
+    // Get stats - should include all SKUs with quantity <= threshold
+    const stats = await inventoryService.getInventoryStats(10)
+    
+    // Get low stock list - should also include all SKUs with quantity <= threshold
+    const listResult = await inventoryService.getInventoryList({ lowStock: true, pageSize: 100 })
+    
+    // The warningCount should match the count of low stock items
+    // Expected: 2 warnings (testSKUOutOfStock with quantity=0, testSKULowStock with quantity=5)
+    // But before the fix, it only counts from Inventory table, so it would be 1 (only testSKULowStock)
+    expect(stats.warningCount).toBeGreaterThanOrEqual(2)
+    
+    // More importantly, the warningCount should match getInventoryList lowStock count
+    // This is the key test for the bug fix
+    const lowStockCount = listResult.list.length
+    expect(stats.warningCount).toBe(lowStockCount)
+  })
+})
+
 describe('Warning Threshold Management', () => {
   let testCategory: any
   let testProduct: any

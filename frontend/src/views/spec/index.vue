@@ -27,58 +27,56 @@
         data-testid="spec-alert-info"
       >
         <template #title>
-          规格类型用于定义商品的规格维度，如"颜色"、"尺码"、"型号"等。创建 SKU 时，选择规格类型后直接输入规格值即可。
+          规格类型用于定义商品的规格维度，如"颜色"、"尺码"、"型号"等。创建 SKU 时，选择规格类型后直接输入规格值即可。可通过拖拽调整顺序。
         </template>
       </el-alert>
 
-      <!-- 表格 -->
-      <el-table
-        v-loading="loading"
-        :data="tableData"
-        stripe
-        border
-        data-testid="specs-table"
-      >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="name" label="规格类型名称" min-width="150">
-          <template #default="{ row }">
-            <el-tag>{{ row.name }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="sort" label="排序" width="100">
-          <template #default="{ row }">
-            <el-input-number
-              v-model="row.sort"
-              :min="0"
-              :max="999"
-              size="small"
-              :data-testid="`spec-input-sort-${row.id}`"
-              @change="handleSortChange(row)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="100">
-          <template #default="{ row }">
-            <el-switch
-              v-model="row.active"
-              :data-testid="`spec-switch-active-${row.id}`"
-              @change="handleStatusChange(row)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180">
-          <template #default="{ row }">
-            {{ formatDate(row.createdAt) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" data-testid="specs-btn-manage" @click="handleManage(row)">管理</el-button>
-            <el-button link type="primary" data-testid="specs-btn-edit" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" data-testid="specs-btn-delete" @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <!-- 拖拽表格 -->
+      <div class="drag-table-wrapper" ref="tableWrapperRef">
+        <el-table
+          v-loading="loading"
+          :data="tableData"
+          stripe
+          border
+          row-key="id"
+          :row-class-name="tableRowClassName"
+          data-testid="specs-table"
+          @row-click="handleRowClick"
+        >
+          <el-table-column width="50" align="center">
+            <template #default>
+              <el-icon class="drag-handle"><Rank /></el-icon>
+            </template>
+          </el-table-column>
+          <el-table-column prop="id" label="ID" width="80" />
+          <el-table-column prop="name" label="规格类型名称" min-width="150">
+            <template #default="{ row }">
+              <el-tag>{{ row.name }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="100">
+            <template #default="{ row }">
+              <el-switch
+                v-model="row.active"
+                :data-testid="`spec-switch-active-${row.id}`"
+                @change="handleStatusChange(row)"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column prop="createdAt" label="创建时间" width="180">
+            <template #default="{ row }">
+              {{ formatDate(row.createdAt) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="200" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" data-testid="specs-btn-manage" @click.stop="handleManage(row)">管理</el-button>
+              <el-button link type="primary" data-testid="specs-btn-edit" @click.stop="handleEdit(row)">编辑</el-button>
+              <el-button link type="danger" data-testid="specs-btn-delete" @click.stop="handleDelete(row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </el-card>
 
     <!-- 新增/编辑对话框 -->
@@ -148,14 +146,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Rank } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
+import Sortable from 'sortablejs'
 import {
   getSpecTypes,
   createSpecType,
   updateSpecType,
   deleteSpecType,
+  reorderSpecs,
 } from '@/api/spec'
 import type { SpecType } from '@/api/spec'
 
@@ -163,6 +164,7 @@ import type { SpecType } from '@/api/spec'
 const loading = ref(false)
 const tableData = ref<SpecType[]>([])
 const showInactive = ref(false)
+const tableWrapperRef = ref<HTMLElement | null>(null)
 
 // 对话框
 const dialogVisible = ref(false)
@@ -190,6 +192,15 @@ const rules: FormRules = {
   ],
 }
 
+// 表格行样式（用于拖拽时的视觉反馈）
+function tableRowClassName({ row }: { row: SpecType }) {
+  return 'drag-row'
+}
+
+function handleRowClick(row: SpecType) {
+  // 点击行不做任何操作，仅为了防止冒泡
+}
+
 // 格式化日期
 function formatDate(dateStr: string) {
   const date = new Date(dateStr)
@@ -214,6 +225,48 @@ async function fetchData() {
   }
 }
 
+// 初始化拖拽排序
+function initDragSort() {
+  if (!tableWrapperRef.value) return
+  
+  const tableBody = tableWrapperRef.value.querySelector('.el-table__body-wrapper tbody')
+  if (!tableBody) return
+  
+  Sortable.create(tableBody, {
+    handle: '.drag-handle',
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
+    onEnd: async (evt) => {
+      // 获取原始数据和新的顺序
+      const { oldIndex, newIndex } = evt
+      if (oldIndex === undefined || newIndex === undefined) return
+      
+      if (oldIndex !== newIndex) {
+        // 移动数据
+        const movedItem = tableData.value.splice(oldIndex, 1)[0]
+        tableData.value.splice(newIndex, 0, movedItem)
+        
+        // 保存排序到后端
+        await saveSortOrder()
+      }
+    },
+  })
+}
+
+// 保存排序到后端
+async function saveSortOrder() {
+  const ids = tableData.value.map((item) => item.id)
+  try {
+    await reorderSpecs(ids)
+    ElMessage.success('排序已更新')
+  } catch (error) {
+    console.error(error)
+    fetchData() // 恢复原数据
+  }
+}
+
 // 新增
 function handleAdd() {
   dialogTitle.value = '新增规格类型'
@@ -234,8 +287,6 @@ function handleEdit(row: SpecType) {
 
 // 管理规格值
 function handleManage(row: SpecType) {
-  // 跳转到规格值管理页面或打开管理对话框
-  // 这里可以跳转到详情页面或打开另一个对话框
   manageDialogVisible.value = true
   currentSpec.value = row
   fetchSpecValues(row.id)
@@ -252,17 +303,6 @@ async function handleDelete(row: SpecType) {
     fetchData()
   } catch (error) {
     console.error(error)
-  }
-}
-
-// 排序变更
-async function handleSortChange(row: SpecType) {
-  try {
-    await updateSpecType(row.id, { sort: row.sort })
-    ElMessage.success('排序已更新')
-  } catch (error) {
-    console.error(error)
-    fetchData() // 恢复原数据
   }
 }
 
@@ -332,8 +372,10 @@ async function handleSubmit() {
   })
 }
 
-onMounted(() => {
-  fetchData()
+onMounted(async () => {
+  await fetchData()
+  await nextTick()
+  initDragSort()
 })
 </script>
 
@@ -348,6 +390,39 @@ onMounted(() => {
       display: flex;
       gap: 16px;
       align-items: center;
+    }
+  }
+
+  .drag-table-wrapper {
+    :deep(.el-table) {
+      .drag-row {
+        cursor: move;
+      }
+
+      .drag-handle {
+        color: #909399;
+        cursor: move;
+        font-size: 16px;
+        
+        &:hover {
+          color: #409eff;
+        }
+      }
+
+      // 拖拽时的样式
+      .sortable-ghost {
+        background-color: #e6f7ff;
+        opacity: 0.8;
+      }
+
+      .sortable-chosen {
+        background-color: #f0f9ff;
+      }
+
+      .sortable-drag {
+        background-color: #fff;
+        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.15);
+      }
     }
   }
 }

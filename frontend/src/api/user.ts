@@ -57,3 +57,8 @@ export function createUser(data: CreateUserParams) {
 export function getCreatableRoles() {
   return request.get<string[]>('/users/creatable-roles')
 }
+
+// 删除用户
+export function deleteUser(id: number) {
+  return request.delete(`/users/${id}`)
+}

@@ -25,7 +25,7 @@
       <!-- 统计卡片 -->
       <el-row :gutter="20" style="margin: 20px 0" data-testid="receivables-stats-row">
         <el-col :span="6">
-          <div data-testid="receivables-stat-total">
+          <div data-testid="receivable-amount">
             <el-statistic title="应收总额" :value="stats.totalAmount" :precision="2" :key="'total-' + stats.totalAmount">
               <template #prefix>¥</template>
             </el-statistic>
@@ -160,8 +160,16 @@
             :max="paymentForm.remainingAmount"
             :precision="2"
             style="width: 100%"
-            data-testid="payment-input-amount"
+            data-testid="paid-amount-input"
           />
+        </el-form-item>
+        <el-form-item label="部分付款">
+          <el-checkbox
+            v-model="paymentForm.isPartial"
+            data-testid="partial-payment-checkbox"
+          >
+            这是部分付款
+          </el-checkbox>
         </el-form-item>
         <el-form-item label="收款方式">
           <el-select v-model="paymentForm.method" style="width: 100%" data-testid="payment-select-method">
@@ -236,6 +244,7 @@ const paymentForm = reactive({
   paymentAmount: 0,
   method: 'cash',
   remark: '',
+  isPartial: false,
 })
 
 // 状态映射
@@ -341,6 +350,9 @@ async function handlePaymentSubmit() {
     ElMessage.success('收款成功')
     paymentDialogVisible.value = false
     fetchData()
+    
+    // 通知订单列表页面刷新数据
+    window.dispatchEvent(new Event('payment-updated'))
   } catch (error: any) {
     ElMessage.error(error.message || '收款失败')
   } finally {

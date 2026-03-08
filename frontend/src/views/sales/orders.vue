@@ -41,7 +41,7 @@
         stripe
         border
         style="margin-top: 20px"
-        data-testid="sales-orders-table"
+        data-testid="order-table"
       >
         <el-table-column prop="orderNo" label="订单号" width="150" />
         <el-table-column label="客户" width="150">
@@ -51,7 +51,7 @@
         </el-table-column>
         <el-table-column label="订单金额" width="120">
           <template #default="{ row }">
-            ¥{{ Number(row.totalAmount).toFixed(2) }}
+            <span data-testid="order-amount">¥{{ Number(row.totalAmount).toFixed(2) }}</span>
           </template>
         </el-table-column>
         <el-table-column label="优惠" width="100">
@@ -142,7 +142,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getSales, confirmSale, cancelSale, deleteSale } from '@/api/sale'
@@ -317,7 +317,20 @@ async function handleDelete(row: Sale) {
 
 onMounted(() => {
   fetchData()
+  
+  // 监听收款更新事件，刷新订单列表数据
+  window.addEventListener('payment-updated', handlePaymentUpdated)
 })
+
+onUnmounted(() => {
+  // 移除事件监听，避免内存泄漏
+  window.removeEventListener('payment-updated', handlePaymentUpdated)
+})
+
+// 收款更新后的回调
+function handlePaymentUpdated() {
+  fetchData()
+}
 </script>
 
 <style scoped lang="scss">

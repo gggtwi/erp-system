@@ -111,3 +111,18 @@ export const getActiveSpecTypes = async () => {
 
   return types
 }
+
+// 批量更新排序
+export const reorderSpecTypes = async (ids: number[]) => {
+  // 使用事务批量更新排序值
+  await prisma.$transaction(
+    ids.map((id, index) =>
+      prisma.specType.update({
+        where: { id },
+        data: { sort: index },
+      })
+    )
+  )
+
+  return { success: true }
+}

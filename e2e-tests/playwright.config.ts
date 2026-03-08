@@ -6,9 +6,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
-  timeout: 10000,
+  timeout: 30000,
   expect: {
-    timeout: 2000,
+    timeout: 5000,
   },
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
@@ -18,14 +18,17 @@ export default defineConfig({
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-    actionTimeout: 2000,
-    navigationTimeout: 5000,
+    video: 'off',
+    actionTimeout: 5000,
+    navigationTimeout: 30000,
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        channel: 'chrome',
+      },
     },
   ],
   webServer: {

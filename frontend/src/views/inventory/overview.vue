@@ -31,7 +31,8 @@
     </el-row>
     
     <!-- 库存预警列表 -->
-    <el-card data-testid="inventory-warning-card">
+    <div data-testid="stock-warning">
+      <el-card data-testid="inventory-warning-card">
       <template #header>
         <div class="card-header">
           <span>库存预警商品</span>
@@ -132,6 +133,7 @@
         </el-table-column>
       </el-table>
     </el-card>
+    </div>
     
     <!-- 库存调整对话框 -->
     <el-dialog
@@ -172,7 +174,7 @@
             v-model="adjustForm.quantity"
             :min="-adjustForm.currentQty"
             :max="9999"
-            data-testid="adjust-input-quantity"
+            data-testid="product-stock-input"
           />
           <div style="color: #909399; font-size: 12px; margin-top: 5px">
             正数增加库存，负数减少库存

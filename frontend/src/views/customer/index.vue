@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <span>客户管理</span>
-          <el-button type="primary" data-testid="customer-btn-create" @click="handleCreate">
+          <el-button type="primary" data-testid="add-customer-btn" @click="handleCreate">
             <el-icon><Plus /></el-icon>
             新建客户
           </el-button>
@@ -75,7 +75,7 @@
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" data-testid="customer-btn-detail" @click="handleViewDetail(row.id)">
+            <el-button type="primary" link size="small" data-testid="view-detail-btn" @click="handleViewDetail(row.id)">
               详情
             </el-button>
             <el-button type="primary" link size="small" data-testid="customer-btn-edit" @click="handleEdit(row)">
@@ -115,10 +115,10 @@
           <el-input v-model="formData.code" placeholder="请输入客户编码" :disabled="!!editingCustomer" data-testid="customer-form-input-code" />
         </el-form-item>
         <el-form-item label="客户名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入客户名称" data-testid="customer-form-input-name" />
+          <el-input v-model="formData.name" placeholder="请输入客户名称" data-testid="customer-name-input" />
         </el-form-item>
         <el-form-item label="手机号" prop="phone">
-          <el-input v-model="formData.phone" placeholder="请输入手机号" data-testid="customer-form-input-phone" />
+          <el-input v-model="formData.phone" placeholder="请输入手机号" data-testid="customer-phone-input" />
         </el-form-item>
         <el-form-item label="地址" prop="address">
           <el-input v-model="formData.address" type="textarea" :rows="2" placeholder="请输入地址" data-testid="customer-form-input-address" />

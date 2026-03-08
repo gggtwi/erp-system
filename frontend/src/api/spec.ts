@@ -33,3 +33,8 @@ export function updateSpecType(id: number, data: Partial<SpecType>) {
 export function deleteSpecType(id: number) {
   return request.delete(`/specs/${id}`)
 }
+
+// 批量更新排序
+export function reorderSpecs(ids: number[]) {
+  return request.put('/specs/reorder', { ids })
+}

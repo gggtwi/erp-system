@@ -29,7 +29,7 @@
           <span class="money">¥{{ Number(customer?.creditLimit || 0).toFixed(2) }}</span>
         </el-descriptions-item>
         <el-descriptions-item label="欠款余额">
-          <span class="money" :class="{ 'text-danger': (customer?.balance || 0) > 0 }">
+          <span class="money" :class="{ 'text-danger': (customer?.balance || 0) > 0 }" data-testid="owed-amount">
             ¥{{ Number(customer?.balance || 0).toFixed(2) }}
           </span>
         </el-descriptions-item>
