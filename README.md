@@ -113,14 +113,29 @@ npm install
 
 ### 启动开发服务器
 
-**后端启动：**
-
+**初始化数据库：**
 ```bash
 cd backend
+npm run db:seed
+```
+
+**初始化超级管理员账号：**
+```bash
+node init-superadmin.js
+# 输出: ✅ 已创建超级管理员账号 (admin/admin123)
+```
+
+**后端启动：**
+```bash
 npm run dev
 ```
 
 后端服务将在 `http://localhost:3000` 启动。
+
+### 默认账号
+| 用户名 | 密码 | 角色 |
+|--------|------|------|
+| admin | admin123 | 超级管理员 |
 
 **前端启动：**
 
