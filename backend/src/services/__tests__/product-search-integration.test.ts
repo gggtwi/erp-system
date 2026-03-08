@@ -122,7 +122,7 @@ describe('Product Search - Frontend Integration Simulation', () => {
       })
       
       // active = 'true' 场景
-      const activeTrue = 'true' === 'true' ? true : 'true' === 'false' ? false : undefined
+      const activeTrue = true
       const result1 = await productService.getProductList({
         active: activeTrue,
         page: 1,
@@ -131,7 +131,7 @@ describe('Product Search - Frontend Integration Simulation', () => {
       expect(result1.list.every(p => p.active === true)).toBe(true)
 
       // active = 'false' 场景
-      const activeFalse = 'false' === 'true' ? true : 'false' === 'false' ? false : undefined
+      const activeFalse = false
       const result2 = await productService.getProductList({
         active: activeFalse,
         page: 1,
